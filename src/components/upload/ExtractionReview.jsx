@@ -40,9 +40,17 @@ export default function ExtractionReview({ data, onChange }) {
     update({
       documents_requested: [
         ...(data.documents_requested || []),
-        { name: '', description: '', is_mandatory: true },
+        { name: '', description: '', is_mandatory: true, tally_exportable: false, suggested_source: 'client_records' },
       ],
     })
+
+  const SOURCE_OPTIONS = [
+    { value: 'tally', label: 'Tally' },
+    { value: 'bank', label: 'Bank' },
+    { value: 'employer', label: 'Employer' },
+    { value: 'client_records', label: 'Client records' },
+    { value: 'government_portal', label: 'IT portal' },
+  ]
   const removeDoc = (idx) => {
     const docs = [...(data.documents_requested || [])]
     docs.splice(idx, 1)
@@ -148,6 +156,39 @@ export default function ExtractionReview({ data, onChange }) {
         </select>
       </Field>
 
+      <Field label="Assessment regime" confidence={conf.faceless_detection}>
+        <select
+          className="input"
+          value={data.assessment_regime || (data.is_faceless ? 'faceless' : 'jurisdictional')}
+          onChange={(e) =>
+            update({
+              assessment_regime: e.target.value,
+              is_faceless: e.target.value === 'faceless',
+            })
+          }
+        >
+          <option value="faceless">Faceless (NaFAC)</option>
+          <option value="jurisdictional">Jurisdictional</option>
+          <option value="transfer_pricing">Transfer pricing</option>
+          <option value="search_case">Search case</option>
+        </select>
+      </Field>
+      <Field label="Faceless assessment">
+        <label className="flex items-center gap-2 h-9 px-3 rounded border border-navy-200 bg-white text-sm text-navy-800">
+          <input
+            type="checkbox"
+            checked={data.is_faceless !== false}
+            onChange={(e) =>
+              update({
+                is_faceless: e.target.checked,
+                assessment_regime: e.target.checked ? 'faceless' : 'jurisdictional',
+              })
+            }
+          />
+          Issued under Faceless Assessment Scheme
+        </label>
+      </Field>
+
       <div className="md:col-span-2">
         <label className="label">Client contact (for magic link)</label>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -178,26 +219,43 @@ export default function ExtractionReview({ data, onChange }) {
             <div key={idx} className="flex items-start gap-2 rounded-md border border-navy-100 bg-white p-3">
               <div className="flex-1 grid grid-cols-1 md:grid-cols-12 gap-2">
                 <input
-                  className="input md:col-span-5"
+                  className="input md:col-span-4"
                   placeholder="Document name"
                   value={doc.name || ''}
                   onChange={(e) => updateDoc(idx, { name: e.target.value })}
                 />
                 <input
-                  className="input md:col-span-6"
+                  className="input md:col-span-4"
                   placeholder="Description / period"
                   value={doc.description || ''}
                   onChange={(e) => updateDoc(idx, { description: e.target.value })}
                 />
-                <label className="md:col-span-1 flex items-center justify-center text-xs text-navy-600 gap-1">
+                <select
+                  className="input md:col-span-3"
+                  value={doc.suggested_source || 'client_records'}
+                  onChange={(e) => updateDoc(idx, { suggested_source: e.target.value })}
+                >
+                  {SOURCE_OPTIONS.map((s) => (
+                    <option key={s.value} value={s.value}>{s.label}</option>
+                  ))}
+                </select>
+                <label className="md:col-span-1 flex flex-col items-center justify-center text-[10px] uppercase tracking-wider text-navy-600 gap-0.5">
                   <input
                     type="checkbox"
-                    checked={doc.is_mandatory !== false}
-                    onChange={(e) => updateDoc(idx, { is_mandatory: e.target.checked })}
+                    checked={doc.tally_exportable === true}
+                    onChange={(e) => updateDoc(idx, { tally_exportable: e.target.checked })}
                   />
-                  Mand.
+                  Tally
                 </label>
               </div>
+              <label className="flex items-center text-[10px] uppercase tracking-wider text-navy-600 gap-1 pt-2">
+                <input
+                  type="checkbox"
+                  checked={doc.is_mandatory !== false}
+                  onChange={(e) => updateDoc(idx, { is_mandatory: e.target.checked })}
+                />
+                Mand.
+              </label>
               <button onClick={() => removeDoc(idx)} className="btn-ghost px-2">
                 <Trash2 className="h-4 w-4 text-navy-500" />
               </button>

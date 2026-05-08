@@ -1,4 +1,15 @@
-import { CheckCircle2, Circle, Clock, AlertTriangle } from 'lucide-react'
+import {
+  CheckCircle2,
+  Circle,
+  Clock,
+  AlertTriangle,
+  Database,
+  Landmark,
+  Briefcase,
+  FolderOpen,
+  Globe,
+  Download,
+} from 'lucide-react'
 import { cx } from '../../lib/utils.js'
 
 const STATUS_META = {
@@ -6,6 +17,14 @@ const STATUS_META = {
   uploaded: { icon: Clock, label: 'Uploaded', cls: 'text-blue-700' },
   verified: { icon: CheckCircle2, label: 'Verified', cls: 'text-emerald-700' },
   rejected: { icon: AlertTriangle, label: 'Rejected', cls: 'text-red-700' },
+}
+
+const SOURCE_META = {
+  tally: { icon: Database, label: 'Export from Tally', cls: 'text-amber-700' },
+  bank: { icon: Landmark, label: 'Request from bank', cls: 'text-blue-700' },
+  employer: { icon: Briefcase, label: 'Request from employer', cls: 'text-purple-700' },
+  client_records: { icon: FolderOpen, label: 'From client files', cls: 'text-navy-600' },
+  government_portal: { icon: Globe, label: 'Download from IT portal', cls: 'text-emerald-700' },
 }
 
 export default function ChecklistPanel({ items }) {
@@ -34,10 +53,12 @@ export default function ChecklistPanel({ items }) {
         {items.map((item) => {
           const meta = STATUS_META[item.status] || STATUS_META.pending
           const Icon = meta.icon
+          const source = SOURCE_META[item.suggested_source]
+          const SourceIcon = source?.icon
           return (
             <li key={item.id} className="flex items-start gap-3 px-3 py-2.5">
               <Icon className={cx('h-4 w-4 mt-0.5 shrink-0', meta.cls)} />
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="text-sm font-medium text-navy-900">
                   {item.document_name}
                   {!item.is_mandatory && (
@@ -47,8 +68,26 @@ export default function ChecklistPanel({ items }) {
                 {item.description && (
                   <div className="text-xs text-navy-500">{item.description}</div>
                 )}
+                <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+                  {SourceIcon && (
+                    <span className={cx('inline-flex items-center gap-1 text-[11px]', source.cls)}>
+                      <SourceIcon className="h-3 w-3" />
+                      {source.label}
+                    </span>
+                  )}
+                  {item.tally_exportable && (
+                    <span className="inline-flex items-center gap-1 rounded border border-amber-200 bg-amber-50 px-1.5 py-0.5 text-[10px] font-medium text-amber-800">
+                      <Database className="h-3 w-3" /> Available in Tally
+                    </span>
+                  )}
+                  {item.tally_exportable && item.status === 'pending' && (
+                    <button className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-800 hover:underline">
+                      <Download className="h-3 w-3" /> Upload from Tally
+                    </button>
+                  )}
+                </div>
               </div>
-              <span className={cx('text-xs font-medium', meta.cls)}>{meta.label}</span>
+              <span className={cx('text-xs font-medium shrink-0', meta.cls)}>{meta.label}</span>
             </li>
           )
         })}

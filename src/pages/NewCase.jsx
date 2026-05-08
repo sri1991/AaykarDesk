@@ -30,14 +30,27 @@ const SAMPLE_EXTRACTION = {
   priority: 'high',
   client_email: '',
   client_phone: '',
+  is_faceless: true,
+  assessment_regime: 'faceless',
   documents_requested: [
-    { name: 'Audited financial statements FY 2022-23', description: 'P&L, B/S, schedules', is_mandatory: true },
-    { name: 'Bank statements — all current accounts', description: 'Apr 2022 to Mar 2023', is_mandatory: true },
-    { name: 'GSTR-1 / 3B reconciliations', description: 'Quarterly', is_mandatory: true },
-    { name: 'Sundry creditors confirmation', description: 'Top 10 by balance', is_mandatory: true },
-    { name: 'Sample purchase invoices', description: '15 highest value', is_mandatory: false },
+    { name: 'Audited financial statements FY 2022-23', description: 'P&L, B/S, schedules', is_mandatory: true, tally_exportable: true, suggested_source: 'tally' },
+    { name: 'Bank statements — all current accounts', description: 'Apr 2022 to Mar 2023', is_mandatory: true, tally_exportable: false, suggested_source: 'bank' },
+    { name: 'GSTR-1 / 3B reconciliations', description: 'Quarterly', is_mandatory: true, tally_exportable: true, suggested_source: 'tally' },
+    { name: 'Sundry creditors confirmation', description: 'Top 10 by balance', is_mandatory: true, tally_exportable: false, suggested_source: 'client_records' },
+    { name: 'Sample purchase invoices', description: '15 highest value', is_mandatory: false, tally_exportable: true, suggested_source: 'tally' },
+    { name: 'Form 26AS', description: 'AY 2023-24 tax credit statement', is_mandatory: true, tally_exportable: false, suggested_source: 'government_portal' },
   ],
-  confidence: { overall: 0.92, deadline: 0.88, section: 0.95 },
+  act_references: [
+    { section_cited: '143(2)', act_version: '1961', equivalent_section: '270', topic: 'Selection for scrutiny assessment' },
+  ],
+  reference_guidance: {
+    response_format: 'e_proceeding_portal',
+    requires_dsc: true,
+    faceless_procedure_notes: 'Reply must be filed via e-Proceedings on the IT portal. No physical hearing unless specifically requested under the Faceless Assessment Scheme.',
+    relevant_rules: ['Rule 12', 'Rule 14C'],
+    taxmann_search_query: '143(2) faceless scrutiny limited disallowance partner remuneration',
+  },
+  confidence: { overall: 0.92, deadline: 0.88, section: 0.95, faceless_detection: 0.97 },
 }
 
 export default function NewCase() {

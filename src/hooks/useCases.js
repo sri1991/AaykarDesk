@@ -1,6 +1,18 @@
 import { useEffect, useState } from 'react'
 import { demoStore } from '../lib/demoStore.js'
 
+function snapshot(id) {
+  return {
+    case: demoStore.getCase(id),
+    checklist: demoStore.getChecklist(id),
+    magicLink: demoStore.getMagicLink(id),
+    triage: demoStore.getTriage(id),
+    uploads: demoStore.getUploads(id),
+    referenceGuidance: demoStore.getReferenceGuidance(id),
+    clientFinancials: demoStore.getClientFinancials(id),
+  }
+}
+
 export function useCases() {
   const [cases, setCases] = useState(() => demoStore.listCases())
   useEffect(() => demoStore.subscribe(() => setCases(demoStore.listCases())), [])
@@ -8,26 +20,8 @@ export function useCases() {
 }
 
 export function useCase(id) {
-  const [data, setData] = useState(() => ({
-    case: demoStore.getCase(id),
-    checklist: demoStore.getChecklist(id),
-    magicLink: demoStore.getMagicLink(id),
-    triage: demoStore.getTriage(id),
-    uploads: demoStore.getUploads(id),
-  }))
-  useEffect(
-    () =>
-      demoStore.subscribe(() =>
-        setData({
-          case: demoStore.getCase(id),
-          checklist: demoStore.getChecklist(id),
-          magicLink: demoStore.getMagicLink(id),
-          triage: demoStore.getTriage(id),
-          uploads: demoStore.getUploads(id),
-        }),
-      ),
-    [id],
-  )
+  const [data, setData] = useState(() => snapshot(id))
+  useEffect(() => demoStore.subscribe(() => setData(snapshot(id))), [id])
   return data
 }
 
