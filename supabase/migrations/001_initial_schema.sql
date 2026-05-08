@@ -1,9 +1,11 @@
 -- AaykarDesk initial schema
-create extension if not exists "uuid-ossp";
-create extension if not exists "pgcrypto";
+-- Supabase keeps extensions in the `extensions` schema; ensure functions
+-- like gen_random_bytes resolve without schema-qualifying every call.
+set search_path to public, extensions;
+create extension if not exists "pgcrypto" with schema extensions;
 
 create table firms (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   name text not null,
   gstin text,
   email text,
@@ -13,7 +15,7 @@ create table firms (
 );
 
 create table users (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   firm_id uuid references firms(id) on delete cascade,
   auth_id uuid unique,
   name text not null,
@@ -23,7 +25,7 @@ create table users (
 );
 
 create table cases (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   firm_id uuid references firms(id) on delete cascade not null,
   created_by uuid references users(id),
   case_number text,
@@ -51,7 +53,7 @@ create table cases (
 );
 
 create table notices (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   case_id uuid references cases(id) on delete cascade not null,
   file_path text not null,
   file_name text not null,
@@ -62,7 +64,7 @@ create table notices (
 );
 
 create table checklist_items (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   case_id uuid references cases(id) on delete cascade not null,
   document_name text not null,
   description text,
@@ -73,7 +75,7 @@ create table checklist_items (
 );
 
 create table magic_links (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   case_id uuid references cases(id) on delete cascade not null,
   token text unique not null default encode(gen_random_bytes(32), 'hex'),
   client_name text,
@@ -85,7 +87,7 @@ create table magic_links (
 );
 
 create table client_uploads (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   magic_link_id uuid references magic_links(id) on delete cascade not null,
   checklist_item_id uuid references checklist_items(id),
   file_path text not null,
@@ -99,7 +101,7 @@ create table client_uploads (
 );
 
 create table extractions (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   case_id uuid references cases(id) on delete cascade not null,
   extraction_type text not null check (extraction_type in ('notice_fields', 'document_classification', 'triage')),
   model_used text,
@@ -112,7 +114,7 @@ create table extractions (
 );
 
 create table triage_results (
-  id uuid primary key default uuid_generate_v4(),
+  id uuid primary key default gen_random_uuid(),
   case_id uuid references cases(id) on delete cascade not null,
   discrepancies jsonb,
   section_mapping jsonb,
