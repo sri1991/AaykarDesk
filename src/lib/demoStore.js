@@ -2,7 +2,7 @@
 // so the app is fully usable for demos and reviews without any backend.
 import { randomToken } from './utils.js'
 
-const KEY = 'aaykardesk_demo_v1'
+const KEY = 'aaykardesk_demo_v2'
 
 function seed() {
   const today = new Date()
@@ -23,9 +23,13 @@ function seed() {
       assessment_year: '2022-23',
       notice_section: '143(2)',
       notice_type: 'scrutiny',
-      ao_name: 'Shri R. Krishnan',
-      ward_circle: 'Circle 3(1)(1)',
-      jurisdiction: 'Chennai',
+      ao_name: 'Faceless - NaFAC',
+      ward_circle: 'National e-Assessment Centre',
+      jurisdiction: 'Delhi',
+      is_faceless: true,
+      assessment_regime: 'faceless',
+      tally_company_name: 'Sundaram Textiles Pvt Ltd FY22-23',
+      tally_import_status: 'none',
       deadline: offset(3),
       deadline_type: 'statutory',
       status: 'awaiting_documents',
@@ -45,6 +49,9 @@ function seed() {
       ao_name: 'Smt P. Lakshmi',
       ward_circle: 'Ward 12(3)',
       jurisdiction: 'Bengaluru',
+      is_faceless: false,
+      assessment_regime: 'jurisdictional',
+      tally_import_status: 'none',
       deadline: offset(10),
       deadline_type: 'statutory',
       status: 'documents_received',
@@ -64,6 +71,9 @@ function seed() {
       ao_name: 'Shri A. Mehta',
       ward_circle: 'Range 42',
       jurisdiction: 'Mumbai',
+      is_faceless: true,
+      assessment_regime: 'faceless',
+      tally_import_status: 'imported',
       deadline: offset(20),
       deadline_type: 'statutory',
       status: 'triage_complete',
@@ -83,6 +93,10 @@ function seed() {
       ao_name: 'Shri V. Naidu',
       ward_circle: 'Circle 5(2)',
       jurisdiction: 'Hyderabad',
+      is_faceless: true,
+      assessment_regime: 'faceless',
+      tally_company_name: 'Greenleaf Organics',
+      tally_import_status: 'imported',
       deadline: offset(-2),
       deadline_type: 'statutory',
       status: 'draft_ready',
@@ -102,6 +116,9 @@ function seed() {
       ao_name: 'Shri S. Roy',
       ward_circle: 'Ward 4(1)',
       jurisdiction: 'Kolkata',
+      is_faceless: false,
+      assessment_regime: 'jurisdictional',
+      tally_import_status: 'none',
       deadline: offset(28),
       deadline_type: 'statutory',
       status: 'new',
@@ -121,6 +138,9 @@ function seed() {
       ao_name: 'Shri D. Khurana',
       ward_circle: 'Range 19',
       jurisdiction: 'Delhi',
+      is_faceless: true,
+      assessment_regime: 'faceless',
+      tally_import_status: 'none',
       deadline: offset(45),
       deadline_type: 'statutory',
       status: 'response_filed',
@@ -131,33 +151,35 @@ function seed() {
 
   const checklists = {
     'c-1001': [
-      { id: 'i1', case_id: 'c-1001', document_name: 'ITR-V for AY 2022-23', is_mandatory: true, status: 'uploaded' },
-      { id: 'i2', case_id: 'c-1001', document_name: 'Audited financials FY 2021-22', is_mandatory: true, status: 'pending' },
-      { id: 'i3', case_id: 'c-1001', document_name: 'Bank statement — HDFC Current A/c', is_mandatory: true, status: 'pending' },
-      { id: 'i4', case_id: 'c-1001', document_name: 'GSTR-1 / GSTR-3B reconciliations', is_mandatory: true, status: 'pending' },
-      { id: 'i5', case_id: 'c-1001', document_name: 'Sundry creditors confirmation letters', is_mandatory: false, status: 'pending' },
+      { id: 'i1', case_id: 'c-1001', document_name: 'ITR-V for AY 2022-23', is_mandatory: true, status: 'uploaded', tally_exportable: false, suggested_source: 'government_portal' },
+      { id: 'i2', case_id: 'c-1001', document_name: 'Audited financials FY 2021-22', description: 'P&L, B/S, schedules', is_mandatory: true, status: 'pending', tally_exportable: true, suggested_source: 'tally' },
+      { id: 'i3', case_id: 'c-1001', document_name: 'Bank statement — HDFC Current A/c', description: 'Apr 2022 to Mar 2023', is_mandatory: true, status: 'pending', tally_exportable: false, suggested_source: 'bank' },
+      { id: 'i4', case_id: 'c-1001', document_name: 'GSTR-1 / GSTR-3B reconciliations', description: 'Quarterly', is_mandatory: true, status: 'pending', tally_exportable: true, suggested_source: 'tally' },
+      { id: 'i5', case_id: 'c-1001', document_name: 'Sundry creditors confirmation letters', description: 'Top 10 by balance', is_mandatory: false, status: 'pending', tally_exportable: false, suggested_source: 'client_records' },
+      { id: 'i6', case_id: 'c-1001', document_name: 'Form 26AS', description: 'AY 2022-23', is_mandatory: true, status: 'pending', tally_exportable: false, suggested_source: 'government_portal' },
     ],
     'c-1002': [
-      { id: 'j1', case_id: 'c-1002', document_name: 'Form 26AS', is_mandatory: true, status: 'verified' },
-      { id: 'j2', case_id: 'c-1002', document_name: 'Capital gains computation', is_mandatory: true, status: 'verified' },
-      { id: 'j3', case_id: 'c-1002', document_name: 'Demat statement', is_mandatory: true, status: 'uploaded' },
+      { id: 'j1', case_id: 'c-1002', document_name: 'Form 26AS', is_mandatory: true, status: 'verified', tally_exportable: false, suggested_source: 'government_portal' },
+      { id: 'j2', case_id: 'c-1002', document_name: 'Capital gains computation', is_mandatory: true, status: 'verified', tally_exportable: false, suggested_source: 'client_records' },
+      { id: 'j3', case_id: 'c-1002', document_name: 'Demat statement', is_mandatory: true, status: 'uploaded', tally_exportable: false, suggested_source: 'client_records' },
+      { id: 'j4', case_id: 'c-1002', document_name: 'Form 16', is_mandatory: true, status: 'verified', tally_exportable: false, suggested_source: 'employer' },
     ],
     'c-1003': [
-      { id: 'k1', case_id: 'c-1003', document_name: 'Source of funds — property purchase', is_mandatory: true, status: 'verified' },
-      { id: 'k2', case_id: 'c-1003', document_name: 'Sale deed', is_mandatory: true, status: 'verified' },
-      { id: 'k3', case_id: 'c-1003', document_name: 'Bank statement — last 24 months', is_mandatory: true, status: 'verified' },
+      { id: 'k1', case_id: 'c-1003', document_name: 'Source of funds — property purchase', is_mandatory: true, status: 'verified', tally_exportable: true, suggested_source: 'tally' },
+      { id: 'k2', case_id: 'c-1003', document_name: 'Sale deed', is_mandatory: true, status: 'verified', tally_exportable: false, suggested_source: 'client_records' },
+      { id: 'k3', case_id: 'c-1003', document_name: 'Bank statement — last 24 months', is_mandatory: true, status: 'verified', tally_exportable: false, suggested_source: 'bank' },
     ],
     'c-1004': [
-      { id: 'l1', case_id: 'c-1004', document_name: 'Audited B/S and P&L', is_mandatory: true, status: 'verified' },
-      { id: 'l2', case_id: 'c-1004', document_name: 'Partner capital accounts', is_mandatory: true, status: 'verified' },
+      { id: 'l1', case_id: 'c-1004', document_name: 'Audited B/S and P&L', is_mandatory: true, status: 'verified', tally_exportable: true, suggested_source: 'tally' },
+      { id: 'l2', case_id: 'c-1004', document_name: 'Partner capital accounts', is_mandatory: true, status: 'verified', tally_exportable: true, suggested_source: 'tally' },
     ],
     'c-1005': [
-      { id: 'm1', case_id: 'c-1005', document_name: 'Original ITR acknowledgement', is_mandatory: true, status: 'pending' },
-      { id: 'm2', case_id: 'c-1005', document_name: 'Form 16', is_mandatory: true, status: 'pending' },
+      { id: 'm1', case_id: 'c-1005', document_name: 'Original ITR acknowledgement', is_mandatory: true, status: 'pending', tally_exportable: false, suggested_source: 'government_portal' },
+      { id: 'm2', case_id: 'c-1005', document_name: 'Form 16', is_mandatory: true, status: 'pending', tally_exportable: false, suggested_source: 'employer' },
     ],
     'c-1006': [
-      { id: 'n1', case_id: 'c-1006', document_name: 'Penalty order copy', is_mandatory: true, status: 'verified' },
-      { id: 'n2', case_id: 'c-1006', document_name: 'Submissions filed before AO', is_mandatory: true, status: 'verified' },
+      { id: 'n1', case_id: 'c-1006', document_name: 'Penalty order copy', is_mandatory: true, status: 'verified', tally_exportable: false, suggested_source: 'government_portal' },
+      { id: 'n2', case_id: 'c-1006', document_name: 'Submissions filed before AO', is_mandatory: true, status: 'verified', tally_exportable: false, suggested_source: 'client_records' },
     ],
   }
 
@@ -201,7 +223,69 @@ function seed() {
     },
   }
 
-  return { cases, checklists, magicLinks, triage, uploads: {} }
+  const referenceGuidance = {
+    'c-1001': {
+      response_format: 'e_proceeding_portal',
+      requires_dsc: true,
+      faceless_procedure_notes:
+        'Reply must be filed via e-Proceedings on the IT portal. No physical hearing unless specifically requested under the Faceless Assessment Scheme.',
+      relevant_rules: ['Rule 12', 'Rule 14C'],
+      taxmann_search_query: '143(2) faceless scrutiny limited disallowance textile manufacturing',
+      act_references: [
+        { section_cited: '143(2)', act_version: '1961', equivalent_section: '270', topic: 'Selection for scrutiny assessment' },
+        { section_cited: '142(1)', act_version: '1961', equivalent_section: '268', topic: 'Inquiry before assessment' },
+      ],
+    },
+    'c-1003': {
+      response_format: 'e_proceeding_portal',
+      requires_dsc: true,
+      faceless_procedure_notes:
+        'Reassessment u/s 148A is governed by Faceless Assessment Scheme; show-cause reply must be uploaded to e-Proceedings tab.',
+      relevant_rules: ['Rule 11UAE'],
+      taxmann_search_query: '148A reopening unexplained credit immovable property HUF',
+      act_references: [
+        { section_cited: '148A(b)', act_version: '1961', equivalent_section: '281', topic: 'Show-cause prior to reopening' },
+        { section_cited: '147', act_version: '1961', equivalent_section: '280', topic: 'Reassessment trigger' },
+      ],
+    },
+    'c-1004': {
+      response_format: 'e_proceeding_portal',
+      requires_dsc: false,
+      faceless_procedure_notes:
+        'Adjournment request must be filed at least 3 days before the compliance date via the portal.',
+      relevant_rules: ['Rule 6', 'Rule 14B'],
+      taxmann_search_query: '143(2) partner remuneration 40(b) GP ratio fall LLP',
+      act_references: [
+        { section_cited: '143(2)', act_version: '1961', equivalent_section: '270', topic: 'Scrutiny assessment' },
+        { section_cited: '40(b)', act_version: '1961', equivalent_section: '36', topic: 'Partner remuneration cap' },
+      ],
+    },
+  }
+
+  const clientFinancials = {
+    'c-1001': [
+      {
+        id: 'f-1001-1',
+        case_id: 'c-1001',
+        source: 'manual_entry',
+        data_type: 'income_summary',
+        assessment_year: '2022-23',
+        period_from: offset(-700),
+        period_to: offset(-340),
+        data: {
+          rows: [
+            { label: 'Sales turnover', notice: 18420000, books: 18420000 },
+            { label: 'Purchases', notice: 12110000, books: 12180000 },
+            { label: 'GP %', notice: '18.4%', books: '18.1%' },
+            { label: 'Salaries & wages', notice: 2850000, books: 2912000 },
+            { label: 'Bank interest received', notice: 142000, books: 138500 },
+          ],
+        },
+      },
+    ],
+  }
+
+  return { cases, checklists, magicLinks, triage, referenceGuidance, clientFinancials, uploads: {} }
 }
 
 function load() {
@@ -268,6 +352,12 @@ export const demoStore = {
   getUploads(caseId) {
     return state.uploads[caseId] || []
   },
+  getReferenceGuidance(caseId) {
+    return (state.referenceGuidance && state.referenceGuidance[caseId]) || null
+  },
+  getClientFinancials(caseId) {
+    return (state.clientFinancials && state.clientFinancials[caseId]) || []
+  },
   reset() {
     state = seed()
     notify()
@@ -289,6 +379,10 @@ export const demoStore = {
       ao_name: input.ao_name || null,
       ward_circle: input.ward_circle || null,
       jurisdiction: input.jurisdiction || null,
+      is_faceless: input.is_faceless ?? (input.assessment_regime ? input.assessment_regime === 'faceless' : true),
+      assessment_regime: input.assessment_regime || (input.is_faceless === false ? 'jurisdictional' : 'faceless'),
+      tally_company_name: input.tally_company_name || null,
+      tally_import_status: input.tally_import_status || 'none',
       deadline: input.deadline || null,
       deadline_type: input.deadline_type || 'statutory',
       status: 'awaiting_documents',
@@ -303,9 +397,18 @@ export const demoStore = {
       document_name: d.name,
       description: d.description || null,
       is_mandatory: d.is_mandatory !== false,
+      tally_exportable: d.tally_exportable === true,
+      suggested_source: d.suggested_source || null,
       status: 'pending',
       sort_order: i,
     }))
+    if (input.reference_guidance || input.act_references) {
+      if (!state.referenceGuidance) state.referenceGuidance = {}
+      state.referenceGuidance[id] = {
+        ...(input.reference_guidance || {}),
+        act_references: input.act_references || (input.reference_guidance?.act_references ?? []),
+      }
+    }
     state.magicLinks[id] = {
       id: `ml-${id}`,
       case_id: id,

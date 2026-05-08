@@ -1,16 +1,42 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Mail, Phone, MapPin, Gavel, Hash, Calendar, User2 } from 'lucide-react'
+import {
+  ArrowLeft,
+  Mail,
+  Phone,
+  MapPin,
+  Gavel,
+  Hash,
+  Calendar,
+  User2,
+  FileText,
+  FolderCheck,
+  ArrowLeftRight,
+  Search,
+  Send,
+} from 'lucide-react'
 import { useCase } from '../../hooks/useCases.js'
 import { formatDate } from '../../lib/utils.js'
 import StatusBadge from '../shared/StatusBadge.jsx'
 import PriorityBadge from '../shared/PriorityBadge.jsx'
 import DeadlineIndicator from '../dashboard/DeadlineIndicator.jsx'
+import RegimeBadge from './RegimeBadge.jsx'
 import ChecklistPanel from './ChecklistPanel.jsx'
 import MagicLinkPanel from './MagicLinkPanel.jsx'
 import CaseTimeline from './CaseTimeline.jsx'
-import TriageSummary from './TriageSummary.jsx'
+import ReconciliationTab from './ReconciliationTab.jsx'
+import ResearchTab from './ResearchTab.jsx'
+import ResponseTab from './ResponseTab.jsx'
 import EmptyState from '../shared/EmptyState.jsx'
+import { cx } from '../../lib/utils.js'
+
+const TABS = [
+  { key: 'notice', label: 'Notice', icon: FileText },
+  { key: 'documents', label: 'Documents', icon: FolderCheck },
+  { key: 'reconciliation', label: 'Reconciliation', icon: ArrowLeftRight },
+  { key: 'research', label: 'Research', icon: Search },
+  { key: 'response', label: 'Response', icon: Send },
+]
 
 function InfoRow({ icon: Icon, label, value, mono }) {
   return (
@@ -26,10 +52,111 @@ function InfoRow({ icon: Icon, label, value, mono }) {
   )
 }
 
+function NoticeTab({ caseRow, guidance, events }) {
+  const issues = guidance?.key_issues || []
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="lg:col-span-2 space-y-5">
+        <div className="card p-5">
+          <h3 className="font-display text-base font-medium text-navy-900 mb-3">
+            Case information
+          </h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
+            <InfoRow icon={Hash} label="Case number" value={caseRow.case_number} mono />
+            <InfoRow icon={Calendar} label="Compliance deadline" value={formatDate(caseRow.deadline)} mono />
+            <InfoRow icon={Gavel} label="Notice section" value={caseRow.notice_section} mono />
+            <InfoRow icon={User2} label="Assessing Officer" value={caseRow.ao_name} />
+            <InfoRow icon={MapPin} label="Ward / Circle" value={[caseRow.ward_circle, caseRow.jurisdiction].filter(Boolean).join(' · ')} />
+            <InfoRow icon={Calendar} label="Assessment Year" value={caseRow.assessment_year} mono />
+            <InfoRow icon={Mail} label="Client email" value={caseRow.client_email} />
+            <InfoRow icon={Phone} label="Client phone" value={caseRow.client_phone} mono />
+          </div>
+          {caseRow.notes && (
+            <div className="mt-4 rounded-md border border-navy-100 bg-cream-50 px-3 py-2 text-sm text-navy-700">
+              {caseRow.notes}
+            </div>
+          )}
+        </div>
+
+        <div className="card p-5">
+          <h3 className="font-display text-base font-medium text-navy-900 mb-2">
+            Notice document
+          </h3>
+          <div className="rounded-md border border-dashed border-navy-200 bg-cream-50 px-4 py-10 text-center text-sm text-navy-600">
+            <FileText className="mx-auto h-6 w-6 text-navy-400 mb-2" />
+            PDF viewer renders here once the notice is uploaded.
+          </div>
+          {issues.length > 0 && (
+            <div className="mt-4">
+              <h4 className="font-display text-sm font-medium text-navy-900 mb-2">Key issues raised</h4>
+              <ul className="list-disc pl-5 text-sm text-navy-700 space-y-1">
+                {issues.map((it, i) => <li key={i}>{it}</li>)}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        <CaseTimeline events={events} />
+      </div>
+
+      <div className="space-y-5">
+        <div className="card p-5">
+          <h3 className="font-display text-sm font-medium text-navy-900 mb-2">Compliance window</h3>
+          <DeadlineIndicator date={caseRow.deadline} />
+          <div className="mt-3 text-xs text-navy-600">
+            Deadline type: <span className="font-medium text-navy-800">{caseRow.deadline_type || 'statutory'}</span>
+          </div>
+        </div>
+        <div className="card p-5 space-y-2">
+          <h3 className="font-display text-sm font-medium text-navy-900">Assessment regime</h3>
+          <RegimeBadge regime={caseRow.assessment_regime} isFaceless={caseRow.is_faceless} />
+          {caseRow.is_faceless ? (
+            <p className="text-xs text-navy-600 mt-2 leading-relaxed">
+              Issued via the National Faceless Assessment Centre. Reply must be filed via e-Proceedings on the
+              IT portal — no physical hearing.
+            </p>
+          ) : (
+            <p className="text-xs text-navy-600 mt-2 leading-relaxed">
+              Issued by a jurisdictional Assessing Officer. Physical submission to the AO may be required in addition to portal filing.
+            </p>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function DocumentsTab({ caseRow, checklist, magicLink }) {
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="lg:col-span-2">
+        <ChecklistPanel items={checklist} />
+      </div>
+      <div className="space-y-5">
+        <MagicLinkPanel
+          caseId={caseRow.id}
+          magicLink={magicLink}
+          clientName={caseRow.client_name}
+          clientPhone={caseRow.client_phone}
+        />
+      </div>
+    </div>
+  )
+}
+
 export default function CaseDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { case: caseRow, checklist, magicLink, triage, uploads } = useCase(id)
+  const {
+    case: caseRow,
+    checklist,
+    magicLink,
+    triage,
+    uploads,
+    referenceGuidance,
+    clientFinancials,
+  } = useCase(id)
+  const [tab, setTab] = useState('notice')
 
   const events = useMemo(() => {
     if (!caseRow) return []
@@ -92,6 +219,7 @@ export default function CaseDetail() {
         <span className="font-mono text-sm text-navy-500">{caseRow.case_number}</span>
         <StatusBadge status={caseRow.status} />
         <PriorityBadge priority={caseRow.priority} />
+        <RegimeBadge regime={caseRow.assessment_regime} isFaceless={caseRow.is_faceless} />
       </div>
 
       <div className="flex flex-wrap items-end justify-between gap-3 mb-5">
@@ -112,44 +240,35 @@ export default function CaseDetail() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 space-y-5">
-          <div className="card p-5">
-            <h3 className="font-display text-base font-medium text-navy-900 mb-3">
-              Case information
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6">
-              <InfoRow icon={Hash} label="Case number" value={caseRow.case_number} mono />
-              <InfoRow icon={Calendar} label="Compliance deadline" value={formatDate(caseRow.deadline)} mono />
-              <InfoRow icon={Gavel} label="Notice section" value={caseRow.notice_section} mono />
-              <InfoRow icon={User2} label="Assessing Officer" value={caseRow.ao_name} />
-              <InfoRow icon={MapPin} label="Ward / Circle" value={[caseRow.ward_circle, caseRow.jurisdiction].filter(Boolean).join(' · ')} />
-              <InfoRow icon={Calendar} label="Assessment Year" value={caseRow.assessment_year} mono />
-              <InfoRow icon={Mail} label="Client email" value={caseRow.client_email} />
-              <InfoRow icon={Phone} label="Client phone" value={caseRow.client_phone} mono />
-            </div>
-            {caseRow.notes && (
-              <div className="mt-4 rounded-md border border-navy-100 bg-cream-50 px-3 py-2 text-sm text-navy-700">
-                {caseRow.notes}
-              </div>
-            )}
-          </div>
-
-          <TriageSummary caseRow={caseRow} triage={triage} checklist={checklist} />
-
-          <CaseTimeline events={events} />
-        </div>
-
-        <div className="space-y-5">
-          <ChecklistPanel items={checklist} />
-          <MagicLinkPanel
-            caseId={caseRow.id}
-            magicLink={magicLink}
-            clientName={caseRow.client_name}
-            clientPhone={caseRow.client_phone}
-          />
-        </div>
+      <div className="border-b border-navy-100 mb-5">
+        <nav className="flex gap-1 -mb-px overflow-x-auto" aria-label="Case sections">
+          {TABS.map((t) => {
+            const Icon = t.icon
+            const active = tab === t.key
+            return (
+              <button
+                key={t.key}
+                onClick={() => setTab(t.key)}
+                className={cx(
+                  'inline-flex items-center gap-2 px-4 py-2.5 text-sm border-b-2 -mb-px transition-colors',
+                  active
+                    ? 'border-navy-900 text-navy-900 font-medium'
+                    : 'border-transparent text-navy-600 hover:text-navy-900',
+                )}
+              >
+                <Icon className="h-4 w-4" />
+                {t.label}
+              </button>
+            )
+          })}
+        </nav>
       </div>
+
+      {tab === 'notice' && <NoticeTab caseRow={caseRow} guidance={referenceGuidance} events={events} />}
+      {tab === 'documents' && <DocumentsTab caseRow={caseRow} checklist={checklist} magicLink={magicLink} />}
+      {tab === 'reconciliation' && <ReconciliationTab caseRow={caseRow} financials={clientFinancials} />}
+      {tab === 'research' && <ResearchTab caseRow={caseRow} guidance={referenceGuidance} triage={triage} />}
+      {tab === 'response' && <ResponseTab caseRow={caseRow} triage={triage} checklist={checklist} guidance={referenceGuidance} />}
     </div>
   )
 }

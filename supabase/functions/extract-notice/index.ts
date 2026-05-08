@@ -7,19 +7,59 @@
 import { serve } from 'https://deno.land/std@0.224.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const EXTRACTION_PROMPT = `You are a tax notice extraction engine for Indian income tax notices.
-Extract these fields and return ONLY valid JSON:
+const EXTRACTION_PROMPT = `SYSTEM: You are a tax notice extraction engine for Indian income tax notices.
+You understand both the Income Tax Act 1961 (repealed) and the Income Tax Act 2025.
+Extract the following fields from the uploaded notice PDF. Return ONLY valid JSON.
+
 {
-  "notice_section": "string", "notice_type": "string", "assessment_year": "string",
-  "client_name": "string", "client_pan": "string", "ao_name": "string",
-  "ward_circle": "string", "jurisdiction": "string",
-  "issue_date": "YYYY-MM-DD", "compliance_date": "YYYY-MM-DD",
+  "notice_section": "string",
+  "notice_type": "scrutiny|reassessment|demand|penalty|rectification|best_judgment",
+  "assessment_year": "string",
+  "client_name": "string",
+  "client_pan": "string",
+  "ao_name": "string — or 'Faceless - NaFAC' if faceless",
+  "ward_circle": "string — or 'National e-Assessment Centre' if faceless",
+  "jurisdiction": "string",
+  "is_faceless": true,
+  "assessment_regime": "faceless|jurisdictional|transfer_pricing|search_case",
+  "issue_date": "YYYY-MM-DD",
+  "compliance_date": "YYYY-MM-DD",
   "deadline_type": "statutory|hearing_date|adjournment",
   "key_issues": [],
-  "documents_requested": [{ "name": "", "description": "", "is_mandatory": true }],
-  "amount_involved": null, "act_references": [],
-  "confidence": { "overall": 0.0, "deadline": 0.0, "section": 0.0 }
-}`
+  "documents_requested": [
+    {
+      "name": "",
+      "description": "",
+      "is_mandatory": true,
+      "tally_exportable": false,
+      "suggested_source": "tally|bank|employer|client_records|government_portal"
+    }
+  ],
+  "amount_involved": null,
+  "act_references": [
+    {
+      "section_cited": "",
+      "act_version": "1961|2025",
+      "equivalent_section": "",
+      "topic": ""
+    }
+  ],
+  "reference_guidance": {
+    "response_format": "e_proceeding_portal|physical_submission|email",
+    "requires_dsc": false,
+    "faceless_procedure_notes": "",
+    "relevant_rules": [],
+    "taxmann_search_query": ""
+  },
+  "confidence": { "overall": 0.0, "deadline": 0.0, "section": 0.0, "faceless_detection": 0.0 }
+}
+
+IMPORTANT:
+- Detect whether this is a Faceless Assessment notice (issued by NaFAC).
+- For each document requested, indicate if it can be exported from TallyPrime.
+- For act_references, always provide the equivalent section in the other Act version (1961↔2025).
+- Generate a taxmann_search_query that would help a CA find relevant case law.
+- Return ONLY the JSON object.`
 
 serve(async (req) => {
   if (req.method !== 'POST') {
@@ -86,8 +126,16 @@ serve(async (req) => {
     model_used: 'gemini-2.5-flash',
     result: parsed,
     confidence: parsed?.confidence?.overall ?? null,
+    reference_guidance: parsed?.reference_guidance ?? null,
     processing_time_ms: elapsed,
   })
+
+  const caseUpdate: Record<string, unknown> = {}
+  if (typeof parsed.is_faceless === 'boolean') caseUpdate.is_faceless = parsed.is_faceless
+  if (typeof parsed.assessment_regime === 'string') caseUpdate.assessment_regime = parsed.assessment_regime
+  if (Object.keys(caseUpdate).length > 0) {
+    await supabase.from('cases').update(caseUpdate).eq('id', case_id)
+  }
 
   if (Array.isArray(parsed.documents_requested) && parsed.documents_requested.length > 0) {
     await supabase.from('checklist_items').insert(
@@ -96,6 +144,8 @@ serve(async (req) => {
         document_name: d.name,
         description: d.description ?? null,
         is_mandatory: d.is_mandatory !== false,
+        tally_exportable: d.tally_exportable === true,
+        suggested_source: d.suggested_source ?? null,
         sort_order: i,
       })),
     )

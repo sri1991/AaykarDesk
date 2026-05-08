@@ -2,36 +2,64 @@ const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
 const FLASH_MODEL = 'gemini-2.5-flash'
 const PRO_MODEL = 'gemini-2.5-pro'
 
-export const EXTRACTION_PROMPT = `You are a tax notice extraction engine for Indian income tax notices.
+export const EXTRACTION_PROMPT = `SYSTEM: You are a tax notice extraction engine for Indian income tax notices.
+You understand both the Income Tax Act 1961 (repealed) and the Income Tax Act 2025.
 Extract the following fields from the uploaded notice PDF. Return ONLY valid JSON.
 
 {
-  "notice_section": "string — the section under which notice is issued (e.g., 142(1), 143(2), 148, 148A, 263)",
-  "notice_type": "string — scrutiny | reassessment | demand | penalty | rectification",
+  "notice_section": "string — section under which notice is issued",
+  "notice_type": "string — scrutiny | reassessment | demand | penalty | rectification | best_judgment",
   "assessment_year": "string — the AY mentioned (e.g., 2024-25)",
   "client_name": "string — name of the assessee",
   "client_pan": "string — PAN of the assessee",
-  "ao_name": "string — name of the Assessing Officer if mentioned",
-  "ward_circle": "string — ward/circle/range mentioned",
-  "jurisdiction": "string — city/region of the AO",
-  "issue_date": "string — date of issue (ISO format YYYY-MM-DD)",
-  "compliance_date": "string — date by which response is due (ISO format YYYY-MM-DD)",
+  "ao_name": "string — name of the Assessing Officer if mentioned, or 'Faceless - NaFAC' if faceless",
+  "ward_circle": "string — ward/circle/range, or 'National e-Assessment Centre' if faceless",
+  "jurisdiction": "string — city/region",
+  "is_faceless": "boolean — true if issued under Faceless Assessment Scheme",
+  "assessment_regime": "string — faceless | jurisdictional | transfer_pricing | search_case",
+  "issue_date": "string — ISO format YYYY-MM-DD",
+  "compliance_date": "string — ISO format YYYY-MM-DD",
   "deadline_type": "string — statutory | hearing_date | adjournment",
-  "key_issues": ["array of strings — main issues/queries raised in the notice"],
+  "key_issues": ["array of strings — main issues/queries raised"],
   "documents_requested": [
-    { "name": "string", "description": "string", "is_mandatory": true }
+    {
+      "name": "string — document name as stated",
+      "description": "string — specifics (period, account, etc.)",
+      "is_mandatory": true,
+      "tally_exportable": true,
+      "suggested_source": "string — 'tally' | 'bank' | 'employer' | 'client_records' | 'government_portal'"
+    }
   ],
   "amount_involved": "number or null",
-  "act_references": ["array — sections of IT Act referenced"],
-  "confidence": { "overall": 0.0-1.0, "deadline": 0.0-1.0, "section": 0.0-1.0 }
+  "act_references": [
+    {
+      "section_cited": "string — exact section cited in notice",
+      "act_version": "string — '1961' or '2025'",
+      "equivalent_section": "string — mapped section in the other Act version",
+      "topic": "string — brief description of what this section covers"
+    }
+  ],
+  "reference_guidance": {
+    "response_format": "string — 'e_proceeding_portal' | 'physical_submission' | 'email'",
+    "requires_dsc": true,
+    "faceless_procedure_notes": "string — any specific faceless procedure requirements",
+    "relevant_rules": ["array — applicable Income Tax Rules"],
+    "taxmann_search_query": "string — pre-built search query for Taxmann.AI research"
+  },
+  "confidence": {
+    "overall": 0.0,
+    "deadline": 0.0,
+    "section": 0.0,
+    "faceless_detection": 0.0
+  }
 }
 
 IMPORTANT:
-- If a field cannot be determined, set it to null
-- For deadline: compute from compliance date; if "within N days" stated, compute from issue_date
-- For documents_requested: extract EVERY document mentioned in annexure or body
-- For act_references: capture both 1961 Act and 2025 Act sections if present
-- Return ONLY the JSON object, no markdown, no explanation`
+- Detect whether this is a Faceless Assessment notice (issued by NaFAC/National Faceless Assessment Centre)
+- For each document requested, indicate if it can be exported from TallyPrime
+- For act_references, always provide the equivalent section in the other Act version (1961↔2025)
+- Generate a taxmann_search_query that would help a CA find relevant case law for the main issues
+- Return ONLY the JSON object`
 
 export const TRIAGE_PROMPT = `You are an expert Indian income tax practitioner triaging a scrutiny case.
 Given the notice metadata and a list of uploaded documents, produce a structured briefing.
