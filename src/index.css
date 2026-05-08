@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center gap-2 rounded-md bg-navy-900 px-4 py-2 text-sm font-medium text-cream-50 shadow-sm transition hover:bg-navy-800 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply inline-flex items-center gap-2 rounded-md border border-navy-200 bg-white px-4 py-2 text-sm font-medium text-navy-800 shadow-sm transition hover:bg-cream-100 disabled:opacity-50;
+  }
+  .btn-ghost {
+    @apply inline-flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium text-navy-700 transition hover:bg-cream-100;
+  }
+  .input {
+    @apply w-full rounded-md border border-navy-200 bg-white px-3 py-2 text-table text-navy-900 placeholder:text-navy-400 focus:border-navy-500 focus:outline-none focus:ring-2 focus:ring-navy-500/20;
+  }
+  .label {
+    @apply block text-label uppercase tracking-wider text-navy-500 mb-1.5 font-medium;
+  }
+  .card {
+    @apply rounded-lg border border-navy-100 bg-white shadow-sm;
+  }
+}
+
+.deadline-pulse {
+  animation: deadlinePulse 2s ease-in-out infinite;
+}
+
+@keyframes deadlinePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
