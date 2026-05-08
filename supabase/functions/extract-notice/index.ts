@@ -46,7 +46,7 @@ serve(async (req) => {
   const buf = new Uint8Array(await file.arrayBuffer())
   const base64 = btoa(String.fromCharCode(...buf))
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_KEY}`
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_KEY}`
   const start = performance.now()
   const res = await fetch(url, {
     method: 'POST',
@@ -83,7 +83,7 @@ serve(async (req) => {
   await supabase.from('extractions').insert({
     case_id,
     extraction_type: 'notice_fields',
-    model_used: 'gemini-1.5-flash-latest',
+    model_used: 'gemini-2.5-flash',
     result: parsed,
     confidence: parsed?.confidence?.overall ?? null,
     processing_time_ms: elapsed,

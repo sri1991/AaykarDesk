@@ -1,6 +1,6 @@
 const API_BASE = 'https://generativelanguage.googleapis.com/v1beta/models'
-const FLASH_MODEL = 'gemini-1.5-flash-latest'
-const PRO_MODEL = 'gemini-1.5-pro-latest'
+const FLASH_MODEL = 'gemini-2.5-flash'
+const PRO_MODEL = 'gemini-2.5-pro'
 
 export const EXTRACTION_PROMPT = `You are a tax notice extraction engine for Indian income tax notices.
 Extract the following fields from the uploaded notice PDF. Return ONLY valid JSON.

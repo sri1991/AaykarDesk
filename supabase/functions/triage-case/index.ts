@@ -43,7 +43,7 @@ serve(async (req) => {
     documents_pending: (items ?? []).filter((i) => i.status === 'pending').map((i) => i.document_name),
   }
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${GEMINI_KEY}`
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-pro:generateContent?key=${GEMINI_KEY}`
   const start = performance.now()
   const res = await fetch(url, {
     method: 'POST',
@@ -75,7 +75,7 @@ serve(async (req) => {
   await supabase.from('extractions').insert({
     case_id,
     extraction_type: 'triage',
-    model_used: 'gemini-1.5-pro-latest',
+    model_used: 'gemini-2.5-pro',
     result: parsed,
     processing_time_ms: elapsed,
   })
