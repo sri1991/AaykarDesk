@@ -6,7 +6,15 @@ import { formatDate } from '../../lib/utils.js'
 
 export default function ClientPortal() {
   const { token } = useParams()
-  const data = useCaseByToken(token)
+  const { data, loading } = useCaseByToken(token)
+
+  if (loading && !data) {
+    return (
+      <div className="min-h-screen bg-cream-100 flex items-center justify-center px-4">
+        <div className="text-sm text-navy-600">Loading…</div>
+      </div>
+    )
+  }
 
   if (!data) {
     return (
@@ -89,7 +97,7 @@ export default function ClientPortal() {
               </div>
             </div>
           ) : (
-            <DocumentChecklist items={checklist} caseId={caseRow.id} />
+            <DocumentChecklist items={checklist} caseId={caseRow.id} token={token} />
           )}
         </div>
 

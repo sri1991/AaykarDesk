@@ -1,24 +1,17 @@
 import { useState } from 'react'
 import FileUploader from './FileUploader.jsx'
-import { demoStore } from '../../lib/demoStore.js'
+import { portalUploadDocument, portalRemoveDocument } from '../../lib/api.js'
 
-export default function DocumentChecklist({ items, caseId }) {
+export default function DocumentChecklist({ items, caseId, token }) {
   const [busy, setBusy] = useState({})
 
   const handleUpload = async (item, file) => {
     setBusy((b) => ({ ...b, [item.id]: true }))
     try {
       if (file) {
-        await new Promise((r) => setTimeout(r, 600))
-        demoStore.updateChecklistItem(item.id, { status: 'uploaded' })
-        demoStore.addUpload(caseId, {
-          checklist_item_id: item.id,
-          file_name: file.name,
-          file_size: file.size,
-          file_type: file.type,
-        })
+        await portalUploadDocument(token, caseId, item, file)
       } else {
-        demoStore.updateChecklistItem(item.id, { status: 'pending' })
+        await portalRemoveDocument(token, item)
       }
     } finally {
       setBusy((b) => ({ ...b, [item.id]: false }))

@@ -35,9 +35,16 @@ cp .env.example .env   # fill in keys (optional for demo)
 npm run dev
 ```
 
-The app runs against an in-memory + localStorage demo store when `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY`
-are missing, so you can demo end-to-end with no backend. Six pre-seeded cases appear on first load,
-including faceless and jurisdictional examples plus a Tally-imported reconciliation.
+When `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` are set, the app reads and writes real
+Supabase tables: each signed-in account is auto-provisioned a firm + user on first login,
+and all cases, checklists, magic links, triage results and client uploads are firm-scoped
+via RLS. The public client portal reaches its case through token-scoped `SECURITY DEFINER`
+RPCs, so RLS stays fully closed.
+
+When those env vars are **missing**, the app falls back to an in-memory + localStorage demo
+store so you can demo end-to-end with no backend. Six pre-seeded cases appear on first load,
+including faceless and jurisdictional examples plus a Tally-imported reconciliation. The data
+layer that switches between the two backends lives in `src/lib/api.js`.
 
 The notice extraction step works without a Gemini key — a representative sample extraction is
 returned. With `VITE_GEMINI_API_KEY` set, the real Gemini 2.5 Flash extraction runs client-side.
@@ -78,7 +85,10 @@ by `src/components/auth/RequireAuth.jsx`.
 ## Supabase setup
 
 1. Create a Supabase project.
-2. Run `supabase/migrations/001_initial_schema.sql`, then `002_ecosystem_integration.sql` in the SQL editor.
+2. Run the migrations in order in the SQL editor: `001_initial_schema.sql`,
+   `002_ecosystem_integration.sql`, then `003_app_data_access.sql`.
+   - `003` adds the provisioning function, the RLS policies 001/002 left unset,
+     and the token-scoped RPCs the public client portal uses.
 3. Create two storage buckets (private): `notices`, `client-uploads`.
 4. Enable the **Google** auth provider (Authentication → Providers) and set the redirect URL to your app origin.
 5. (Optional) Run `supabase/seed.sql` for demo cases.

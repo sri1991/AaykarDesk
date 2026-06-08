@@ -1,52 +1,80 @@
 import { useEffect, useState } from 'react'
-import { demoStore } from '../lib/demoStore.js'
+import { listCases, getCaseBundle, getCaseByToken, subscribeData } from '../lib/api.js'
 
-function snapshot(id) {
-  return {
-    case: demoStore.getCase(id),
-    checklist: demoStore.getChecklist(id),
-    magicLink: demoStore.getMagicLink(id),
-    triage: demoStore.getTriage(id),
-    uploads: demoStore.getUploads(id),
-    referenceGuidance: demoStore.getReferenceGuidance(id),
-    clientFinancials: demoStore.getClientFinancials(id),
-  }
+const EMPTY_BUNDLE = {
+  case: null,
+  checklist: [],
+  magicLink: null,
+  triage: null,
+  uploads: [],
+  referenceGuidance: null,
+  clientFinancials: [],
 }
 
 export function useCases() {
-  const [cases, setCases] = useState(() => demoStore.listCases())
-  useEffect(() => demoStore.subscribe(() => setCases(demoStore.listCases())), [])
-  return cases
+  const [cases, setCases] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let active = true
+    const run = () =>
+      listCases()
+        .then((r) => active && setCases(r))
+        .catch(() => active && setCases([]))
+        .finally(() => active && setLoading(false))
+    run()
+    const unsub = subscribeData(run)
+    return () => {
+      active = false
+      unsub()
+    }
+  }, [])
+
+  return { cases, loading }
 }
 
 export function useCase(id) {
-  const [data, setData] = useState(() => snapshot(id))
-  useEffect(() => demoStore.subscribe(() => setData(snapshot(id))), [id])
-  return data
+  const [data, setData] = useState({ ...EMPTY_BUNDLE })
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    const run = () =>
+      getCaseBundle(id)
+        .then((r) => active && setData(r))
+        .catch(() => active && setData({ ...EMPTY_BUNDLE }))
+        .finally(() => active && setLoading(false))
+    run()
+    const unsub = subscribeData(run)
+    return () => {
+      active = false
+      unsub()
+    }
+  }, [id])
+
+  return { ...data, loading }
 }
 
 export function useCaseByToken(token) {
-  const [data, setData] = useState(() => {
-    const found = demoStore.getCaseByToken(token)
-    if (!found) return null
-    return {
-      ...found,
-      checklist: demoStore.getChecklist(found.case.id),
-      uploads: demoStore.getUploads(found.case.id),
+  const [data, setData] = useState(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    let active = true
+    setLoading(true)
+    const run = () =>
+      getCaseByToken(token)
+        .then((r) => active && setData(r))
+        .catch(() => active && setData(null))
+        .finally(() => active && setLoading(false))
+    run()
+    const unsub = subscribeData(run)
+    return () => {
+      active = false
+      unsub()
     }
-  })
-  useEffect(
-    () =>
-      demoStore.subscribe(() => {
-        const found = demoStore.getCaseByToken(token)
-        if (!found) return setData(null)
-        setData({
-          ...found,
-          checklist: demoStore.getChecklist(found.case.id),
-          uploads: demoStore.getUploads(found.case.id),
-        })
-      }),
-    [token],
-  )
-  return data
+  }, [token])
+
+  return { data, loading }
 }

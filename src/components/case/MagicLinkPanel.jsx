@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link2, Copy, RefreshCw, MessageCircle, Check } from 'lucide-react'
 import { copyToClipboard, formatDateTime, whatsappShareUrl } from '../../lib/utils.js'
-import { demoStore } from '../../lib/demoStore.js'
+import { rotateMagicLink } from '../../lib/api.js'
 
 export default function MagicLinkPanel({ caseId, magicLink, clientName, clientPhone }) {
   const [copied, setCopied] = useState(false)
@@ -15,7 +15,7 @@ export default function MagicLinkPanel({ caseId, magicLink, clientName, clientPh
 
   const onRotate = () => {
     if (!confirm('Rotate the link? The previous URL will stop working.')) return
-    demoStore.rotateMagicLink(caseId)
+    rotateMagicLink(caseId)
   }
 
   const waText = `Hi${clientName ? ' ' + clientName.split(' ')[0] : ''}, please upload the requested documents here: ${url}`
@@ -75,7 +75,7 @@ export default function MagicLinkPanel({ caseId, magicLink, clientName, clientPh
           <div className="text-sm text-navy-600">
             No active magic link.
             <button
-              onClick={() => demoStore.rotateMagicLink(caseId)}
+              onClick={() => rotateMagicLink(caseId)}
               className="btn-primary ml-2"
             >
               Generate link

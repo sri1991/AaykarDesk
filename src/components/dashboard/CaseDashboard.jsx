@@ -32,7 +32,7 @@ function StatCard({ icon: Icon, label, value, hint, tone = 'default' }) {
 }
 
 export default function CaseDashboard() {
-  const cases = useCases()
+  const { cases } = useCases()
   const [statusFilter, setStatusFilter] = useState('all')
   const [priorityFilter, setPriorityFilter] = useState('all')
   const [query, setQuery] = useState('')

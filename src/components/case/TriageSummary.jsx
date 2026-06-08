@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Sparkles, Loader2, AlertOctagon, ShieldAlert, ShieldCheck, BookOpen } from 'lucide-react'
 import { triageCase } from '../../lib/gemini.js'
-import { demoStore } from '../../lib/demoStore.js'
+import { setTriage } from '../../lib/api.js'
 import { cx } from '../../lib/utils.js'
 
 const RISK_STYLES = {
@@ -58,7 +58,7 @@ export default function TriageSummary({ caseRow, triage, checklist }) {
         const r = await triageCase(ctx)
         result = r.result
       }
-      demoStore.setTriage(caseRow.id, result)
+      await setTriage(caseRow.id, result)
     } catch (err) {
       setError(err.message || 'Triage failed')
     } finally {

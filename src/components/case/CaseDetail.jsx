@@ -28,6 +28,7 @@ import ReconciliationTab from './ReconciliationTab.jsx'
 import ResearchTab from './ResearchTab.jsx'
 import ResponseTab from './ResponseTab.jsx'
 import EmptyState from '../shared/EmptyState.jsx'
+import LoadingSpinner from '../shared/LoadingSpinner.jsx'
 import { cx } from '../../lib/utils.js'
 
 const TABS = [
@@ -155,6 +156,7 @@ export default function CaseDetail() {
     uploads,
     referenceGuidance,
     clientFinancials,
+    loading,
   } = useCase(id)
   const [tab, setTab] = useState('notice')
 
@@ -193,6 +195,14 @@ export default function CaseDetail() {
     }
     return list.sort((a, b) => new Date(b.at) - new Date(a.at))
   }, [caseRow, magicLink, uploads, triage])
+
+  if (loading && !caseRow) {
+    return (
+      <div className="px-6 py-10 grid place-items-center">
+        <LoadingSpinner label="Loading case…" />
+      </div>
+    )
+  }
 
   if (!caseRow) {
     return (

@@ -5,7 +5,7 @@ import NoticeUpload from '../components/upload/NoticeUpload.jsx'
 import ExtractionReview from '../components/upload/ExtractionReview.jsx'
 import CaseCreateForm from '../components/upload/CaseCreateForm.jsx'
 import { extractNoticeFromPdf } from '../lib/gemini.js'
-import { demoStore } from '../lib/demoStore.js'
+import { createCase } from '../lib/api.js'
 import { cx } from '../lib/utils.js'
 
 const STEPS = [
@@ -91,11 +91,15 @@ export default function NewCase() {
     }
   }
 
+  const [createError, setCreateError] = useState(null)
   const handleCreate = async () => {
     setCreating(true)
+    setCreateError(null)
     try {
-      const created = demoStore.createCase(data)
+      const created = await createCase(data)
       navigate(`/cases/${created.id}`)
+    } catch (err) {
+      setCreateError(err.message || 'Could not create the case. Please try again.')
     } finally {
       setCreating(false)
     }
@@ -187,6 +191,11 @@ export default function NewCase() {
 
       {step === 2 && data && (
         <div>
+          {createError && (
+            <div className="mb-4 rounded-md border border-urgency-high/30 bg-urgency-high/5 px-3 py-2 text-sm text-urgency-high">
+              {createError}
+            </div>
+          )}
           <CaseCreateForm data={data} onCreate={handleCreate} isCreating={creating} />
           <div className="mt-4 flex items-center justify-between">
             <button onClick={() => setStep(1)} className="btn-ghost">

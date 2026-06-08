@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react'
 import { supabase, isSupabaseConfigured } from './supabase.js'
+import { ensureProvisioned, resetProvisioning } from './api.js'
 
 const DEMO_KEY = 'aaykardesk_demo_session'
 
@@ -28,15 +29,28 @@ export function AuthProvider({ children }) {
     }
 
     let active = true
-    supabase.auth.getSession().then(({ data }) => {
+    // Ensure a firm + user row exists for the signed-in account, then expose
+    // the user. Provisioning failure should not block sign-in.
+    const onSession = async (session) => {
+      const u = session?.user ?? null
+      if (u) {
+        try {
+          await ensureProvisioned()
+        } catch {
+          /* provisioning is best-effort; data reads will surface errors */
+        }
+      } else {
+        resetProvisioning()
+      }
       if (!active) return
-      setUser(data.session?.user ?? null)
+      setUser(u)
       setLoading(false)
-    })
+    }
+
+    supabase.auth.getSession().then(({ data }) => onSession(data.session))
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
+      onSession(session)
     })
 
     return () => {
