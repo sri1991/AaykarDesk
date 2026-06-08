@@ -125,4 +125,4 @@ begin
 end;
 $$;
 
-grant execute on function portal_upload_document(text, uuid, text, integer, text, text) to anon, authenticated;
+grant execute on function portal_upload_document(text, uuid, text, text, integer, text) to anon, authenticated;
