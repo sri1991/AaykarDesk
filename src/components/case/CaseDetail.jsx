@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react'
 import { Link, useParams, useNavigate } from 'react-router-dom'
+import { getSignedUrl } from '../../lib/api.js'
+import { STORAGE_BUCKETS } from '../../lib/supabase.js'
 import {
   ArrowLeft,
   Mail,
@@ -14,6 +16,7 @@ import {
   ArrowLeftRight,
   Search,
   Send,
+  Download,
 } from 'lucide-react'
 import { useCase } from '../../hooks/useCases.js'
 import { formatDate } from '../../lib/utils.js'
@@ -53,7 +56,12 @@ function InfoRow({ icon: Icon, label, value, mono }) {
   )
 }
 
-function NoticeTab({ caseRow, guidance, events }) {
+async function openStoredFile(bucket, path) {
+  const url = await getSignedUrl(bucket, path)
+  if (url) window.open(url, '_blank', 'noopener')
+}
+
+function NoticeTab({ caseRow, guidance, events, notice }) {
   const issues = guidance?.key_issues || []
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
@@ -83,10 +91,25 @@ function NoticeTab({ caseRow, guidance, events }) {
           <h3 className="font-display text-base font-medium text-navy-900 mb-2">
             Notice document
           </h3>
-          <div className="rounded-md border border-dashed border-navy-200 bg-cream-50 px-4 py-10 text-center text-sm text-navy-600">
-            <FileText className="mx-auto h-6 w-6 text-navy-400 mb-2" />
-            PDF viewer renders here once the notice is uploaded.
-          </div>
+          {notice ? (
+            <div className="flex items-center justify-between rounded-md border border-navy-200 bg-white px-4 py-3">
+              <div className="flex items-center gap-2 min-w-0">
+                <FileText className="h-5 w-5 text-navy-500 shrink-0" />
+                <span className="text-sm text-navy-800 truncate">{notice.file_name}</span>
+              </div>
+              <button
+                onClick={() => openStoredFile(STORAGE_BUCKETS.notices, notice.file_path)}
+                className="btn-secondary px-3 py-1.5 text-xs shrink-0"
+              >
+                <Download className="h-3.5 w-3.5" /> View PDF
+              </button>
+            </div>
+          ) : (
+            <div className="rounded-md border border-dashed border-navy-200 bg-cream-50 px-4 py-10 text-center text-sm text-navy-600">
+              <FileText className="mx-auto h-6 w-6 text-navy-400 mb-2" />
+              No notice PDF stored for this case.
+            </div>
+          )}
           {issues.length > 0 && (
             <div className="mt-4">
               <h4 className="font-display text-sm font-medium text-navy-900 mb-2">Key issues raised</h4>
@@ -127,11 +150,11 @@ function NoticeTab({ caseRow, guidance, events }) {
   )
 }
 
-function DocumentsTab({ caseRow, checklist, magicLink }) {
+function DocumentsTab({ caseRow, checklist, magicLink, uploads }) {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
       <div className="lg:col-span-2">
-        <ChecklistPanel items={checklist} />
+        <ChecklistPanel items={checklist} uploads={uploads} />
       </div>
       <div className="space-y-5">
         <MagicLinkPanel
@@ -156,6 +179,7 @@ export default function CaseDetail() {
     uploads,
     referenceGuidance,
     clientFinancials,
+    notice,
     loading,
   } = useCase(id)
   const [tab, setTab] = useState('notice')
@@ -274,8 +298,8 @@ export default function CaseDetail() {
         </nav>
       </div>
 
-      {tab === 'notice' && <NoticeTab caseRow={caseRow} guidance={referenceGuidance} events={events} />}
-      {tab === 'documents' && <DocumentsTab caseRow={caseRow} checklist={checklist} magicLink={magicLink} />}
+      {tab === 'notice' && <NoticeTab caseRow={caseRow} guidance={referenceGuidance} events={events} notice={notice} />}
+      {tab === 'documents' && <DocumentsTab caseRow={caseRow} checklist={checklist} magicLink={magicLink} uploads={uploads} />}
       {tab === 'reconciliation' && <ReconciliationTab caseRow={caseRow} financials={clientFinancials} />}
       {tab === 'research' && <ResearchTab caseRow={caseRow} guidance={referenceGuidance} triage={triage} />}
       {tab === 'response' && <ResponseTab caseRow={caseRow} triage={triage} checklist={checklist} guidance={referenceGuidance} />}

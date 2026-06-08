@@ -9,8 +9,11 @@ import {
   FolderOpen,
   Globe,
   Download,
+  Eye,
 } from 'lucide-react'
 import { cx } from '../../lib/utils.js'
+import { getSignedUrl } from '../../lib/api.js'
+import { STORAGE_BUCKETS } from '../../lib/supabase.js'
 
 const STATUS_META = {
   pending: { icon: Circle, label: 'Pending', cls: 'text-navy-400' },
@@ -27,9 +30,15 @@ const SOURCE_META = {
   government_portal: { icon: Globe, label: 'Download from IT portal', cls: 'text-emerald-700' },
 }
 
-export default function ChecklistPanel({ items }) {
+async function viewUpload(path) {
+  const url = await getSignedUrl(STORAGE_BUCKETS.clientUploads, path)
+  if (url) window.open(url, '_blank', 'noopener')
+}
+
+export default function ChecklistPanel({ items, uploads = [] }) {
   const total = items.length
   const done = items.filter((i) => i.status === 'verified' || i.status === 'uploaded').length
+  const uploadByItem = new Map(uploads.map((u) => [u.checklist_item_id, u]))
 
   return (
     <div className="card">
@@ -55,6 +64,7 @@ export default function ChecklistPanel({ items }) {
           const Icon = meta.icon
           const source = SOURCE_META[item.suggested_source]
           const SourceIcon = source?.icon
+          const upload = uploadByItem.get(item.id)
           return (
             <li key={item.id} className="flex items-start gap-3 px-3 py-2.5">
               <Icon className={cx('h-4 w-4 mt-0.5 shrink-0', meta.cls)} />
@@ -83,6 +93,14 @@ export default function ChecklistPanel({ items }) {
                   {item.tally_exportable && item.status === 'pending' && (
                     <button className="inline-flex items-center gap-1 text-[11px] font-medium text-amber-800 hover:underline">
                       <Download className="h-3 w-3" /> Upload from Tally
+                    </button>
+                  )}
+                  {upload?.file_path && (
+                    <button
+                      onClick={() => viewUpload(upload.file_path)}
+                      className="inline-flex items-center gap-1 text-[11px] font-medium text-blue-700 hover:underline"
+                    >
+                      <Eye className="h-3 w-3" /> View {upload.file_name ? `(${upload.file_name})` : 'file'}
                     </button>
                   )}
                 </div>

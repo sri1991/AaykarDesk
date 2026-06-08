@@ -39,7 +39,9 @@ When `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` are set, the app reads and wri
 Supabase tables: each signed-in account is auto-provisioned a firm + user on first login,
 and all cases, checklists, magic links, triage results and client uploads are firm-scoped
 via RLS. The public client portal reaches its case through token-scoped `SECURITY DEFINER`
-RPCs, so RLS stays fully closed.
+RPCs, so RLS stays fully closed. Notice PDFs and client document uploads are stored as real
+files in private Storage buckets (`notices/{case_id}/…`, `client-uploads/{token}/{item}/…`)
+and surfaced through short-lived signed URLs.
 
 When those env vars are **missing**, the app falls back to an in-memory + localStorage demo
 store so you can demo end-to-end with no backend. Six pre-seeded cases appear on first load,
@@ -86,10 +88,13 @@ by `src/components/auth/RequireAuth.jsx`.
 
 1. Create a Supabase project.
 2. Run the migrations in order in the SQL editor: `001_initial_schema.sql`,
-   `002_ecosystem_integration.sql`, then `003_app_data_access.sql`.
+   `002_ecosystem_integration.sql`, `003_app_data_access.sql`, then `004_storage.sql`.
    - `003` adds the provisioning function, the RLS policies 001/002 left unset,
      and the token-scoped RPCs the public client portal uses.
-3. Create two storage buckets (private): `notices`, `client-uploads`.
+   - `004` creates the `notices` / `client-uploads` buckets and their
+     `storage.objects` policies, and upgrades the portal upload RPC to record the
+     real storage path. (Running `004` means you can skip the manual bucket step.)
+3. Storage buckets are created by `004_storage.sql`; no manual step needed.
 4. Enable the **Google** auth provider (Authentication → Providers) and set the redirect URL to your app origin.
 5. (Optional) Run `supabase/seed.sql` for demo cases.
 6. Deploy edge functions:

@@ -96,7 +96,7 @@ export default function NewCase() {
     setCreating(true)
     setCreateError(null)
     try {
-      const created = await createCase(data)
+      const created = await createCase(data, file)
       navigate(`/cases/${created.id}`)
     } catch (err) {
       setCreateError(err.message || 'Could not create the case. Please try again.')

@@ -1,8 +1,21 @@
 // Unified data layer. Delegates to Supabase when configured, otherwise to the
 // in-browser demo store — so the app behaves identically in both modes and the
 // UI never has to know which backend is in use.
-import { supabase, isSupabaseConfigured } from './supabase.js'
+import { supabase, isSupabaseConfigured, STORAGE_BUCKETS } from './supabase.js'
 import { demoStore } from './demoStore.js'
+
+// Make a storage-safe object key from a user-supplied file name.
+function safeName(name) {
+  return (name || 'file').replace(/[^a-zA-Z0-9.\-_]/g, '_')
+}
+
+// Generate a short-lived signed URL for a private storage object.
+export async function getSignedUrl(bucket, path, expiresIn = 3600) {
+  if (!isSupabaseConfigured || !path) return null
+  const { data, error } = await supabase.storage.from(bucket).createSignedUrl(path, expiresIn)
+  if (error) return null
+  return data?.signedUrl || null
+}
 
 // --- change notification --------------------------------------------------
 // A single stream the hooks subscribe to so a write anywhere refreshes reads.
@@ -53,13 +66,14 @@ function demoBundle(id) {
     uploads: demoStore.getUploads(id),
     referenceGuidance: demoStore.getReferenceGuidance(id),
     clientFinancials: demoStore.getClientFinancials(id),
+    notice: null,
   }
 }
 
 export async function getCaseBundle(id) {
   if (!isSupabaseConfigured) return demoBundle(id)
 
-  const [caseRes, checklistRes, linksRes, triageRes, finRes, extrRes] = await Promise.all([
+  const [caseRes, checklistRes, linksRes, triageRes, finRes, extrRes, noticeRes] = await Promise.all([
     supabase.from('cases').select('*').eq('id', id).maybeSingle(),
     supabase.from('checklist_items').select('*').eq('case_id', id).order('sort_order', { ascending: true }),
     supabase.from('magic_links').select('*').eq('case_id', id).order('created_at', { ascending: false }),
@@ -72,6 +86,7 @@ export async function getCaseBundle(id) {
       .eq('extraction_type', 'notice_fields')
       .order('created_at', { ascending: false })
       .limit(1),
+    supabase.from('notices').select('*').eq('case_id', id).order('created_at', { ascending: false }).limit(1),
   ])
 
   const links = linksRes.data || []
@@ -106,6 +121,7 @@ export async function getCaseBundle(id) {
     uploads,
     referenceGuidance,
     clientFinancials: finRes.data || [],
+    notice: (noticeRes.data && noticeRes.data[0]) || null,
   }
 }
 
@@ -132,7 +148,7 @@ const CASE_COLUMNS = [
   'assessment_regime', 'tally_company_name', 'tally_import_status',
 ]
 
-export async function createCase(input) {
+export async function createCase(input, file) {
   if (!isSupabaseConfigured) return demoStore.createCase(input)
 
   const firmId = await ensureProvisioned()
@@ -177,6 +193,27 @@ export async function createCase(input) {
 
   // Create the initial client magic link (token/expiry come from DB defaults).
   await supabase.from('magic_links').insert({ case_id: created.id })
+
+  // Upload the notice PDF to private storage (best-effort — a missing bucket or
+  // storage policy should not block case creation).
+  if (file) {
+    try {
+      const path = `${created.id}/${Date.now()}-${safeName(file.name)}`
+      const { error: upErr } = await supabase.storage
+        .from(STORAGE_BUCKETS.notices)
+        .upload(path, file, { contentType: file.type, upsert: false })
+      if (!upErr) {
+        await supabase.from('notices').insert({
+          case_id: created.id,
+          file_path: path,
+          file_name: file.name,
+          file_size: file.size,
+        })
+      }
+    } catch {
+      /* notice file is optional; ignore upload failures */
+    }
+  }
 
   emit()
   return created
@@ -223,9 +260,16 @@ export async function portalUploadDocument(token, caseId, item, file) {
     })
     return
   }
+  const path = `${token}/${item.id}/${Date.now()}-${safeName(file.name)}`
+  const { error: upErr } = await supabase.storage
+    .from(STORAGE_BUCKETS.clientUploads)
+    .upload(path, file, { contentType: file.type, upsert: false })
+  if (upErr) throw upErr
+
   const { error } = await supabase.rpc('portal_upload_document', {
     p_token: token,
     p_item_id: item.id,
+    p_file_path: path,
     p_file_name: file.name,
     p_file_size: file.size,
     p_file_type: file.type,
