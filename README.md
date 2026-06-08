@@ -46,7 +46,8 @@ returned. With `VITE_GEMINI_API_KEY` set, the real Gemini 2.5 Flash extraction r
 
 | Route | Description |
 | --- | --- |
-| `/cases` | Case dashboard (stats + dense table) |
+| `/login` | Sign-in screen (Google OAuth via Supabase, or demo-mode bypass) |
+| `/cases` | Case dashboard (stats + dense table) — requires auth |
 | `/cases/new` | Upload → AI extract → confirm → create |
 | `/cases/:id` | Tabbed case detail (Notice · Documents · Reconciliation · Research · Response) |
 | `/portal/:token` | Public client portal — no auth, mobile-friendly |
@@ -59,13 +60,29 @@ returned. With `VITE_GEMINI_API_KEY` set, the real Gemini 2.5 Flash extraction r
 - **Research** — extracted act references with 1961 ↔ 2025 mapping, relevant Rules, and a pre-built Taxmann.AI deep link
 - **Response** — (Phase 2) template draft, Word download, and a one-click jump to IT Portal e-Proceedings
 
+## Authentication
+
+The app is gated behind a `/login` screen.
+
+- **With Supabase configured**, sign-in uses **Google OAuth** (`supabase.auth.signInWithOAuth`).
+  Enable the Google provider in Supabase → Authentication → Providers, add your Google
+  OAuth client ID/secret, and add your app origin to the redirect allow-list. Users land
+  back on `/cases` after consent.
+- **Without Supabase configured** (demo mode), the Google button is replaced by a
+  "Continue in demo mode" bypass that creates a local-only demo session — so the app
+  still runs end-to-end with no backend.
+
+Auth state lives in `src/lib/auth.jsx` (`AuthProvider` / `useAuth`); routes are guarded
+by `src/components/auth/RequireAuth.jsx`.
+
 ## Supabase setup
 
 1. Create a Supabase project.
 2. Run `supabase/migrations/001_initial_schema.sql`, then `002_ecosystem_integration.sql` in the SQL editor.
 3. Create two storage buckets (private): `notices`, `client-uploads`.
-4. (Optional) Run `supabase/seed.sql` for demo cases.
-5. Deploy edge functions:
+4. Enable the **Google** auth provider (Authentication → Providers) and set the redirect URL to your app origin.
+5. (Optional) Run `supabase/seed.sql` for demo cases.
+6. Deploy edge functions:
    ```bash
    supabase functions deploy extract-notice
    supabase functions deploy triage-case
