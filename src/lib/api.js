@@ -27,6 +27,11 @@ export function subscribeData(fn) {
 function emit() {
   subscribers.forEach((fn) => fn())
 }
+// Manually re-pull all subscribed reads (e.g. a "Refresh" button), so a CA can
+// pick up documents a client uploaded from a different browser/session.
+export function refreshData() {
+  emit()
+}
 // Bridge demo-store mutations into the same stream.
 if (!isSupabaseConfigured) {
   demoStore.subscribe(() => emit())

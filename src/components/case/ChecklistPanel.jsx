@@ -10,9 +10,11 @@ import {
   Globe,
   Download,
   Eye,
+  RefreshCw,
 } from 'lucide-react'
+import { useState } from 'react'
 import { cx } from '../../lib/utils.js'
-import { getSignedUrl } from '../../lib/api.js'
+import { getSignedUrl, refreshData } from '../../lib/api.js'
 import { STORAGE_BUCKETS } from '../../lib/supabase.js'
 
 const STATUS_META = {
@@ -39,6 +41,13 @@ export default function ChecklistPanel({ items, uploads = [] }) {
   const total = items.length
   const done = items.filter((i) => i.status === 'verified' || i.status === 'uploaded').length
   const uploadByItem = new Map(uploads.map((u) => [u.checklist_item_id, u]))
+  const [refreshing, setRefreshing] = useState(false)
+
+  const onRefresh = () => {
+    setRefreshing(true)
+    refreshData()
+    setTimeout(() => setRefreshing(false), 600)
+  }
 
   return (
     <div className="card">
@@ -46,9 +55,19 @@ export default function ChecklistPanel({ items, uploads = [] }) {
         <h3 className="font-display text-base font-medium text-navy-900">
           Document checklist
         </h3>
-        <span className="text-xs font-mono text-navy-600">
-          {done}/{total}
-        </span>
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-mono text-navy-600">
+            {done}/{total}
+          </span>
+          <button
+            onClick={onRefresh}
+            className="btn-ghost px-2 py-1 text-xs"
+            title="Refresh — pick up documents the client just uploaded"
+          >
+            <RefreshCw className={cx('h-3.5 w-3.5', refreshing && 'animate-spin')} />
+            Refresh
+          </button>
+        </div>
       </div>
       <div className="px-4 pt-3">
         <div className="h-1.5 w-full rounded bg-navy-100 overflow-hidden">
