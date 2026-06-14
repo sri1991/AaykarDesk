@@ -55,6 +55,7 @@ returned. With `VITE_GEMINI_API_KEY` set, the real Gemini 2.5 Flash extraction r
 
 | Route | Description |
 | --- | --- |
+| `/` | Public landing page — product overview with sign-in CTAs (no auth) |
 | `/login` | Sign-in screen (Google OAuth via Supabase, or demo-mode bypass) |
 | `/cases` | Case dashboard (stats + dense table) — requires auth |
 | `/cases/new` | Upload → AI extract → confirm → create |

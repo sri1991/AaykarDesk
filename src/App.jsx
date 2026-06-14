@@ -4,12 +4,14 @@ import Dashboard from './pages/Dashboard.jsx'
 import NewCase from './pages/NewCase.jsx'
 import CasePage from './pages/CasePage.jsx'
 import Portal from './pages/Portal.jsx'
+import Landing from './pages/Landing.jsx'
 import Login from './components/auth/Login.jsx'
 import RequireAuth from './components/auth/RequireAuth.jsx'
 
 export default function App() {
   return (
     <Routes>
+      <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/portal/:token" element={<Portal />} />
       <Route
@@ -19,12 +21,11 @@ export default function App() {
           </RequireAuth>
         }
       >
-        <Route index element={<Navigate to="/cases" replace />} />
         <Route path="/cases" element={<Dashboard />} />
         <Route path="/cases/new" element={<NewCase />} />
         <Route path="/cases/:id" element={<CasePage />} />
       </Route>
-      <Route path="*" element={<Navigate to="/cases" replace />} />
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
 }
