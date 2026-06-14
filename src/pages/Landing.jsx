@@ -30,8 +30,8 @@ const FEATURES = [
   },
   {
     icon: FileSearch,
-    title: 'Research, pre-built',
-    body: 'Section references mapped 1961 ↔ 2025, relevant Rules, and a ready-made Taxmann.AI deep link for the issues raised.',
+    title: 'Law, laid out',
+    body: 'Section references mapped 1961 ↔ 2025 and the relevant Income Tax Rules — the legal groundwork for the issues raised, ready in the case file.',
   },
   {
     icon: Scale,
@@ -132,7 +132,7 @@ export default function Landing() {
             </span>
             <span className="inline-flex items-center gap-1.5">
               <CheckCircle2 className="h-4 w-4 text-urgency-low" />
-              Works alongside Jamku, Tally &amp; Taxmann
+              Works alongside Jamku, Tally &amp; the IT portal
             </span>
           </div>
         </div>

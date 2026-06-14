@@ -1,54 +1,25 @@
-import { BookOpen, ExternalLink, Search, Scale, FileSearch } from 'lucide-react'
+import { BookOpen, Scale, FileSearch } from 'lucide-react'
 
-function taxmannLink(query) {
-  if (!query) return null
-  return `https://www.taxmann.com/research/all/all/all/?searchType=AdvanceSearch&q=${encodeURIComponent(query)}`
-}
-
-export default function ResearchTab({ caseRow, guidance, triage }) {
+export default function ResearchTab({ guidance, triage }) {
   const acts = guidance?.act_references || []
   const triageMapping = triage?.section_mapping || []
-  const taxmannQuery = guidance?.taxmann_search_query
-  const taxmannHref = taxmannLink(taxmannQuery)
   const rules = guidance?.relevant_rules || []
-  const fallbackQuery =
-    taxmannQuery ||
-    [caseRow.notice_section, caseRow.notice_type, caseRow.assessment_year].filter(Boolean).join(' ')
-  const fallbackHref = taxmannLink(fallbackQuery)
 
   return (
     <div className="space-y-5">
       <div className="card p-5">
         <div className="flex items-start gap-3">
           <div className="h-9 w-9 rounded-md bg-cream-200 text-navy-800 grid place-items-center">
-            <Search className="h-4 w-4" />
+            <Scale className="h-4 w-4" />
           </div>
           <div className="flex-1">
             <h3 className="font-display text-base font-medium text-navy-900">
-              Taxmann.AI research
+              Legal research
             </h3>
             <p className="text-sm text-navy-600 mt-0.5">
-              Pre-built search query derived from the notice. Opens Taxmann research with the issues
-              already typed in.
+              Sections cited in the notice, mapped between the 1961 and 2025 Acts, with the
+              applicable Income Tax Rules — so you start your research with the law already laid out.
             </p>
-            {taxmannQuery && (
-              <pre className="mt-2 rounded-md border border-navy-100 bg-cream-50 px-3 py-2 text-xs text-navy-800 whitespace-pre-wrap font-mono">
-{taxmannQuery}
-              </pre>
-            )}
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <a
-                className="btn-primary"
-                href={taxmannHref || fallbackHref}
-                target="_blank"
-                rel="noreferrer"
-              >
-                <ExternalLink className="h-4 w-4" />
-                {taxmannQuery
-                  ? `Search Taxmann for: ${taxmannQuery.slice(0, 60)}${taxmannQuery.length > 60 ? '…' : ''}`
-                  : 'Search Taxmann for this notice'}
-              </a>
-            </div>
           </div>
         </div>
       </div>
@@ -70,7 +41,6 @@ export default function ResearchTab({ caseRow, guidance, triage }) {
                   <th className="px-3 py-1.5 text-left">Source act</th>
                   <th className="px-3 py-1.5 text-left">Equivalent section</th>
                   <th className="px-3 py-1.5 text-left">Topic</th>
-                  <th className="px-3 py-1.5"></th>
                 </tr>
               </thead>
               <tbody>
@@ -82,16 +52,6 @@ export default function ResearchTab({ caseRow, guidance, triage }) {
                       {a.equivalent_section} <span className="text-navy-500">({a.act_version === '1961' ? '2025' : '1961'})</span>
                     </td>
                     <td className="px-3 py-1.5 text-navy-700">{a.topic}</td>
-                    <td className="px-3 py-1.5 text-right">
-                      <a
-                        className="inline-flex items-center gap-1 text-xs text-blue-700 hover:underline"
-                        href={taxmannLink(`${a.section_cited} ${a.topic || ''}`)}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <Scale className="h-3 w-3" /> Case law
-                      </a>
-                    </td>
                   </tr>
                 ))}
                 {triageMapping.map((m, i) => (
@@ -102,16 +62,6 @@ export default function ResearchTab({ caseRow, guidance, triage }) {
                       {m.act_2025} <span className="text-navy-500">(2025)</span>
                     </td>
                     <td className="px-3 py-1.5 text-navy-700">{m.note}</td>
-                    <td className="px-3 py-1.5 text-right">
-                      <a
-                        className="inline-flex items-center gap-1 text-xs text-blue-700 hover:underline"
-                        href={taxmannLink(`${m.act_1961} ${m.note || ''}`)}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        <Scale className="h-3 w-3" /> Case law
-                      </a>
-                    </td>
                   </tr>
                 ))}
               </tbody>

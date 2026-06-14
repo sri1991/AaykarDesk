@@ -52,7 +52,7 @@ with client for document collection → AI triages the case for the CA.**
 - Per-field extraction accuracy / confidence (incl. Faceless detection)
 - Magic link open rate & document upload completion rate
 - Magic-link-share → all-documents-received time
-- Cases per firm per month; Taxmann deep-link click rate
+- Cases per firm per month
 
 ---
 
@@ -81,8 +81,8 @@ with client for document collection → AI triages the case for the CA.**
   portal / client) and the shareable magic link
 - **Reconciliation** — side-by-side "As per Notice / 26AS" vs "As per Client Records"
   with mismatches highlighted
-- **Research** — extracted act references with **1961 ↔ 2025 section mapping**,
-  relevant Rules, and a pre-built Taxmann.AI deep link
+- **Research** — extracted act references with **1961 ↔ 2025 section mapping**
+  and the relevant Income Tax Rules
 - **Response** — *Phase 2 placeholder* (template draft, Word download, IT-Portal jump)
 
 **AI extraction (live)**
@@ -93,7 +93,7 @@ with client for document collection → AI triages the case for the CA.**
   **`is_faceless` + `assessment_regime`**, issue/compliance dates, key issues,
   per-document requests (with `tally_exportable` + `suggested_source`),
   `act_references` with bidirectional 1961↔2025 mapping, response/DSC guidance,
-  Taxmann query, and **per-field confidence scores**.
+  and **per-field confidence scores**.
 
 **Triage (Edge Function)**
 - `supabase/functions/triage-case` calls Gemini Pro to produce discrepancies,
@@ -132,7 +132,7 @@ supabase/
 
 | Phase | Scope | Status |
 | --- | --- | --- |
-| **1 — Passive (MVP)** | Taxmann deep links, "Export from Tally" hints, Faceless detection, 1961↔2025 cross-reference | **Built** |
+| **1 — Passive (MVP)** | "Export from Tally" hints, Faceless detection, 1961↔2025 cross-reference | **Built** |
 | **2 — Active (M2–3)** | Tally XML import, 26AS/AIS JSON ingestion, auto-reconciliation; Response tab (draft + Word + e-Proceedings jump) | Planned / scaffolded |
 | **3 — Deep (M4–6)** | IT-portal sync (ERI), DSC signing, e-Proceedings upload prep, Tally HTTP API (`localhost:9000`) | Future |
 

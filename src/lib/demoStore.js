@@ -230,7 +230,6 @@ function seed() {
       faceless_procedure_notes:
         'Reply must be filed via e-Proceedings on the IT portal. No physical hearing unless specifically requested under the Faceless Assessment Scheme.',
       relevant_rules: ['Rule 12', 'Rule 14C'],
-      taxmann_search_query: '143(2) faceless scrutiny limited disallowance textile manufacturing',
       act_references: [
         { section_cited: '143(2)', act_version: '1961', equivalent_section: '270', topic: 'Selection for scrutiny assessment' },
         { section_cited: '142(1)', act_version: '1961', equivalent_section: '268', topic: 'Inquiry before assessment' },
@@ -242,7 +241,6 @@ function seed() {
       faceless_procedure_notes:
         'Reassessment u/s 148A is governed by Faceless Assessment Scheme; show-cause reply must be uploaded to e-Proceedings tab.',
       relevant_rules: ['Rule 11UAE'],
-      taxmann_search_query: '148A reopening unexplained credit immovable property HUF',
       act_references: [
         { section_cited: '148A(b)', act_version: '1961', equivalent_section: '281', topic: 'Show-cause prior to reopening' },
         { section_cited: '147', act_version: '1961', equivalent_section: '280', topic: 'Reassessment trigger' },
@@ -254,7 +252,6 @@ function seed() {
       faceless_procedure_notes:
         'Adjournment request must be filed at least 3 days before the compliance date via the portal.',
       relevant_rules: ['Rule 6', 'Rule 14B'],
-      taxmann_search_query: '143(2) partner remuneration 40(b) GP ratio fall LLP',
       act_references: [
         { section_cited: '143(2)', act_version: '1961', equivalent_section: '270', topic: 'Scrutiny assessment' },
         { section_cited: '40(b)', act_version: '1961', equivalent_section: '36', topic: 'Partner remuneration cap' },

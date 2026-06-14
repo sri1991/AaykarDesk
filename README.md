@@ -67,7 +67,7 @@ returned. With `VITE_GEMINI_API_KEY` set, the real Gemini 2.5 Flash extraction r
 - **Notice** — uploaded PDF + extracted fields + deadline banner + Faceless/Jurisdictional regime badge
 - **Documents** — checklist with per-item source hints (Tally / bank / employer / portal / client) + magic link
 - **Reconciliation** — side-by-side comparison of "As per Notice / 26AS" vs "As per Client Records" with mismatches highlighted
-- **Research** — extracted act references with 1961 ↔ 2025 mapping, relevant Rules, and a pre-built Taxmann.AI deep link
+- **Research** — extracted act references with 1961 ↔ 2025 mapping and the relevant Income Tax Rules
 - **Response** — (Phase 2) template draft, Word download, and a one-click jump to IT Portal e-Proceedings
 
 ## Authentication
@@ -124,16 +124,15 @@ Set `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, and `VITE_GEMINI_API_KEY` in 
    who sends back 4 blurry photos and 2 wrong files. Instead — one link. The client sees a checklist,
    uploads each document, you get notified when they're done.
 4. **The intelligence.** The Research tab already mapped Section 143(2) to the 2025 Act equivalent
-   and generated a Taxmann search query for the specific issues raised. Your clerk would have spent
+   and surfaced the relevant Rules for the specific issues raised. Your clerk would have spent
    45 minutes finding this. It's here in the case file.
 5. **The ask.** Everything your clerk does today still happens. Jamku still tracks your notices.
-   Tally still holds the books. Taxmann is still your research bible. AaykarDesk just eliminates
-   the 4–6 hours of admin between them.
+   Tally still holds the books. Your research tools are still your research tools. AaykarDesk
+   just eliminates the 4–6 hours of admin between them.
 
 ## Ecosystem integration roadmap
 
 **Phase 1 (MVP) — passive integration**
-- Pre-built Taxmann.AI search links (deep link with query params)
 - "Export from Tally" hints on checklist items
 - Faceless vs jurisdictional regime detection
 - Act section 1961 ↔ 2025 cross-reference
@@ -158,7 +157,6 @@ Set `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, and `VITE_GEMINI_API_KEY` in 
 - Document upload completion rate (X of Y checklist items uploaded)
 - Time from magic link share to all documents received
 - Cases per firm per month (usage depth)
-- Taxmann deep link click rate (validates research tab value)
 
 ## Project layout
 

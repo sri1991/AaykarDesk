@@ -43,8 +43,7 @@ Extract the following fields from the uploaded notice PDF. Return ONLY valid JSO
     "response_format": "string — 'e_proceeding_portal' | 'physical_submission' | 'email'",
     "requires_dsc": true,
     "faceless_procedure_notes": "string — any specific faceless procedure requirements",
-    "relevant_rules": ["array — applicable Income Tax Rules"],
-    "taxmann_search_query": "string — pre-built search query for Taxmann.AI research"
+    "relevant_rules": ["array — applicable Income Tax Rules"]
   },
   "confidence": {
     "overall": 0.0,
@@ -58,7 +57,6 @@ IMPORTANT:
 - Detect whether this is a Faceless Assessment notice (issued by NaFAC/National Faceless Assessment Centre)
 - For each document requested, indicate if it can be exported from TallyPrime
 - For act_references, always provide the equivalent section in the other Act version (1961↔2025)
-- Generate a taxmann_search_query that would help a CA find relevant case law for the main issues
 - Return ONLY the JSON object`
 
 export const TRIAGE_PROMPT = `You are an expert Indian income tax practitioner triaging a scrutiny case.

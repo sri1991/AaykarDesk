@@ -48,8 +48,7 @@ Extract the following fields from the uploaded notice PDF. Return ONLY valid JSO
     "response_format": "e_proceeding_portal|physical_submission|email",
     "requires_dsc": false,
     "faceless_procedure_notes": "",
-    "relevant_rules": [],
-    "taxmann_search_query": ""
+    "relevant_rules": []
   },
   "confidence": { "overall": 0.0, "deadline": 0.0, "section": 0.0, "faceless_detection": 0.0 }
 }
@@ -58,7 +57,6 @@ IMPORTANT:
 - Detect whether this is a Faceless Assessment notice (issued by NaFAC).
 - For each document requested, indicate if it can be exported from TallyPrime.
 - For act_references, always provide the equivalent section in the other Act version (1961↔2025).
-- Generate a taxmann_search_query that would help a CA find relevant case law.
 - Return ONLY the JSON object.`
 
 serve(async (req) => {

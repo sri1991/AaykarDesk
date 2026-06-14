@@ -48,7 +48,6 @@ const SAMPLE_EXTRACTION = {
     requires_dsc: true,
     faceless_procedure_notes: 'Reply must be filed via e-Proceedings on the IT portal. No physical hearing unless specifically requested under the Faceless Assessment Scheme.',
     relevant_rules: ['Rule 12', 'Rule 14C'],
-    taxmann_search_query: '143(2) faceless scrutiny limited disallowance partner remuneration',
   },
   confidence: { overall: 0.92, deadline: 0.88, section: 0.95, faceless_detection: 0.97 },
 }
