@@ -1,0 +1,12 @@
+node_modules/
+out/
+.remotion/
+
+# Heavy binary assets are supplied by the producer, not committed.
+# See public/README.md for the checklist. Keep the folder structure (.gitkeep)
+# but ignore the actual media so the repo stays light.
+public/vo/*.mp3
+public/audio/*.mp3
+public/assets/notice.pdf
+public/assets/favicons/*.png
+public/fonts/*.woff2

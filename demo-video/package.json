@@ -1,0 +1,25 @@
+{
+  "name": "aaykardesk-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Remotion pitch video for AaykarDesk (1920x1080, 90s, 30fps)",
+  "scripts": {
+    "dev": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts AaykarDeskDemo out/aaykardesk-demo.mp4 --codec=h264 --crf=18 --pixel-format=yuv420p",
+    "still": "remotion still src/index.ts AaykarDeskDemo out/frame.png --frame=300",
+    "upgrade": "remotion upgrade"
+  },
+  "dependencies": {
+    "@remotion/cli": "^4.0.140",
+    "@remotion/google-fonts": "^4.0.140",
+    "@remotion/media-utils": "^4.0.140",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "remotion": "^4.0.140"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "typescript": "^5.4.5"
+  }
+}
