@@ -47,7 +47,7 @@ export const ExtractionReview: React.FC = () => {
         <div style={{ fontFamily: bodyFont }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 14, marginBottom: 22 }}>
             <div style={{ fontFamily: displayFont, fontSize: 26, fontWeight: 700, color: theme.ink }}>AI Extraction</div>
-            <Pill color={theme.navy[600]} faint>✦ Gemini 2.5 Flash</Pill>
+            <Pill color={theme.navy[600]} faint>✦ AaykarDesk AI</Pill>
             <span style={{ color: theme.inkFaint, fontSize: 14 }}>read the notice in ~3 seconds</span>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px 40px' }}>
