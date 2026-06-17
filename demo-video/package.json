@@ -10,6 +10,9 @@
     "upgrade": "remotion upgrade"
   },
   "dependencies": {
+    "@fontsource-variable/dm-sans": "^5.2.8",
+    "@fontsource-variable/jetbrains-mono": "^5.2.8",
+    "@fontsource-variable/source-serif-4": "^5.2.9",
     "@remotion/cli": "^4.0.140",
     "@remotion/google-fonts": "^4.0.140",
     "@remotion/media-utils": "^4.0.140",

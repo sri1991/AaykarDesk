@@ -1,5 +1,6 @@
 import { AbsoluteFill, Audio, Sequence, staticFile } from 'remotion';
 import { Cursor } from './utils/Cursor';
+import { useFontsReady } from './fonts';
 import { theme } from './theme';
 
 import { InboxHook } from './scenes/01_InboxHook';
@@ -36,7 +37,9 @@ const SCENES = [
   { from: 2220, dur: 480, Comp: EndCard, vo: 'vo/12_cta.mp3' },
 ] as const;
 
-export const AaykarDeskDemo: React.FC = () => (
+export const AaykarDeskDemo: React.FC = () => {
+  useFontsReady(); // hold frames until local fonts are parsed
+  return (
   <AbsoluteFill style={{ background: theme.stage }}>
     {/* Background music — full duration, ducked under VO via the volume prop. */}
     {ENABLE_AUDIO && <Audio src={staticFile('audio/bgm.mp3')} volume={0.15} />}
@@ -51,4 +54,5 @@ export const AaykarDeskDemo: React.FC = () => (
     {/* One cursor across the whole film, driven by absolute-frame waypoints. */}
     <Cursor />
   </AbsoluteFill>
-);
+  );
+};
