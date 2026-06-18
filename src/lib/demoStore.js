@@ -2,9 +2,9 @@
 // so the app is fully usable for demos and reviews without any backend.
 import { randomToken, defaultAcceptedFileTypes } from './utils.js'
 
-// Bumped to v3 when the portal-enhancement fields were added to the seed so a
-// stale v2 cache doesn't hide the new demo content.
-const KEY = 'aaykardesk_demo_v3'
+// Bumped when the seed shape changes so a stale cache doesn't hide new demo
+// content. v4 adds client notice summaries to every linked demo case.
+const KEY = 'aaykardesk_demo_v4'
 
 function seed() {
   const today = new Date()
@@ -61,6 +61,9 @@ function seed() {
       deadline_type: 'statutory',
       status: 'documents_received',
       priority: 'high',
+      client_notice_summary:
+        'The Income Tax Department is reviewing your tax return for AY 2023-24 and has asked for some additional information before completing the assessment. This is a routine check. Your CA is handling the response on your behalf and needs the documents listed below to reply. Once you upload them, your CA will review everything and submit the response before the deadline.',
+      show_notice_summary: true,
       created_at: offset(-9),
     },
     {
@@ -106,6 +109,9 @@ function seed() {
       deadline_type: 'statutory',
       status: 'draft_ready',
       priority: 'critical',
+      client_notice_summary:
+        "The Income Tax Department has selected your firm's tax return for AY 2023-24 for a detailed review. This is a routine process and does not mean anything is wrong — the department simply wants to verify some of the information in the return. Your CA is handling the response on your behalf and needs the documents listed below to prepare the reply. Once you upload everything, your CA will review and submit the response before the deadline.",
+      show_notice_summary: true,
       created_at: offset(-18),
     },
     {
@@ -128,6 +134,9 @@ function seed() {
       deadline_type: 'statutory',
       status: 'new',
       priority: 'medium',
+      client_notice_summary:
+        'The Income Tax Department has reviewed your filed return for AY 2024-25 and flagged it as needing a small correction before it can be processed. This is a common, fixable issue. Your CA is handling the correction for you and needs the documents listed below to set things right. Once you upload them, your CA will make the correction and respond before the deadline.',
+      show_notice_summary: true,
       created_at: offset(-2),
     },
     {
