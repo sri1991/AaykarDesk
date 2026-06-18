@@ -94,8 +94,19 @@ export default function ChecklistPanel({ items, uploads = [] }) {
                     <span className="ml-2 text-[10px] uppercase tracking-wider text-navy-500">optional</span>
                   )}
                 </div>
-                {item.description && (
-                  <div className="text-xs text-navy-500">{item.description}</div>
+                {(item.client_description || item.description) && (
+                  <div className="text-xs text-navy-500">
+                    {item.client_description || item.description}
+                  </div>
+                )}
+                {item.internal_reasoning && (
+                  <div className="mt-1 text-[11px] text-navy-500 italic">
+                    <span className="not-italic font-medium text-navy-600">CA note: </span>
+                    {item.internal_reasoning}
+                    {item.share_reasoning_with_client && (
+                      <span className="ml-1 not-italic text-emerald-700">(shared with client)</span>
+                    )}
+                  </div>
                 )}
                 <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
                   {SourceIcon && (
