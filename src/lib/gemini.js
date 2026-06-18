@@ -31,6 +31,7 @@ Extract the following fields from the uploaded notice PDF. Return ONLY valid JSO
     }
   ],
   "amount_involved": "number or null",
+  "client_notice_summary": "string — a warm, calm, factual plain-language explanation of this notice for the CLIENT (4-6 sentences, 300-500 chars). Cover: what the notice is, why the IT department issued it, what the client must do (submit documents to the CA, who handles the response), and reassurance that the CA is managing the process. No section references, no jargon, no mention of penalties/prosecution/worst-case outcomes, no legal advice or speculation about outcomes. Leave as an empty string if the notice section is not one of 143(1), 143(2), 245, 139(9).",
   "act_references": [
     {
       "section_cited": "string — exact section cited in notice",
@@ -71,6 +72,61 @@ Return ONLY valid JSON of shape:
   "summary": "string — 4-6 sentence executive summary for the CA",
   "draft_response": "string — short template draft of compliance response"
 }`
+
+// Notice types the client summary may be auto-generated for. Anything else is
+// left blank for the CA to write manually (Enhancement 5, limited rollout).
+export const NOTICE_SUMMARY_WHITELIST = ['143(1)', '143(2)', '245', '139(9)']
+
+export function isSummaryWhitelisted(section) {
+  if (!section) return false
+  const s = String(section).trim()
+  return NOTICE_SUMMARY_WHITELIST.some((w) => s === w || s.startsWith(w))
+}
+
+export const NOTICE_SUMMARY_PROMPT = `You write plain-language explanations of Indian income tax notices for the
+taxpayer (the CA's client). Given the notice metadata, produce a single summary
+paragraph of 4-6 sentences (aim for 300-500 characters).
+
+Cover, in order:
+1. What the notice is, in plain words.
+2. Why the Income Tax Department issued it.
+3. What the client needs to do — submit the requested documents to their CA, who handles the response.
+4. Reassurance that the CA is managing the process.
+
+Tone: warm, calm, factual. Constraints: no section numbers, no jargon, no legal
+advice, no speculation about outcomes, and never mention penalties, prosecution,
+or worst-case scenarios. Return ONLY the summary text (no JSON, no headings).`
+
+export async function generateNoticeSummary(context, { apiKey } = {}) {
+  const key = apiKey || import.meta.env.VITE_GEMINI_API_KEY
+  if (!key) throw new Error('Missing VITE_GEMINI_API_KEY')
+
+  const url = `${API_BASE}/${FLASH_MODEL}:generateContent?key=${key}`
+  const body = {
+    contents: [
+      {
+        parts: [
+          { text: NOTICE_SUMMARY_PROMPT },
+          { text: `\nNotice metadata:\n${JSON.stringify(context, null, 2)}` },
+        ],
+      },
+    ],
+    generationConfig: { temperature: 0.4 },
+  }
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  })
+  if (!res.ok) {
+    const errText = await res.text()
+    throw new Error(`Gemini summary failed: ${res.status} ${errText}`)
+  }
+  const json = await res.json()
+  const text = json?.candidates?.[0]?.content?.parts?.[0]?.text || ''
+  return text.trim()
+}
 
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {

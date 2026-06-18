@@ -4,9 +4,20 @@ import { ArrowLeft, ArrowRight, Sparkles, Loader2 } from 'lucide-react'
 import NoticeUpload from '../components/upload/NoticeUpload.jsx'
 import ExtractionReview from '../components/upload/ExtractionReview.jsx'
 import CaseCreateForm from '../components/upload/CaseCreateForm.jsx'
-import { extractNoticeFromPdf } from '../lib/gemini.js'
+import { extractNoticeFromPdf, generateNoticeSummary, isSummaryWhitelisted } from '../lib/gemini.js'
 import { createCase } from '../lib/api.js'
 import { cx } from '../lib/utils.js'
+
+// Canned client summaries used in demo mode (no Gemini key) so the flow always
+// produces a reviewable draft for whitelisted notice types.
+function sampleNoticeSummary(section, ay = 'the relevant year') {
+  const s = String(section || '')
+  if (s.startsWith('143(1)') || s.startsWith('245')) {
+    return `The Income Tax Department has processed your tax return for AY ${ay} and found a difference between what you filed and their records. They are asking for additional tax, or for documents that support what you originally filed. Your CA is reviewing the notice and will decide the right response. The documents below are needed to verify the figures in your return and decide whether the demand is correct or should be challenged.`
+  }
+  // 143(2), 139(9) and other whitelisted scrutiny-style notices
+  return `The Income Tax Department has selected your tax return for AY ${ay} for a detailed review. This is a routine process — being selected does not mean you've done anything wrong. The department simply wants to verify some of the information in your return. Your CA is handling the response on your behalf and needs the documents listed below to prepare the reply. Once you upload everything, your CA will review and submit the response before the deadline.`
+}
 
 const STEPS = [
   { key: 'upload', label: 'Upload notice' },
@@ -32,6 +43,9 @@ const SAMPLE_EXTRACTION = {
   client_phone: '',
   is_faceless: true,
   assessment_regime: 'faceless',
+  client_notice_summary:
+    "The Income Tax Department has selected your tax return for AY 2023-24 for a detailed review. This is a routine process — being selected does not mean you've done anything wrong. The department simply wants to verify some of the information in your return. Your CA is handling the response on your behalf and needs the documents listed below to prepare the reply. Once you upload everything, your CA will review and submit the response before the deadline.",
+  show_notice_summary: true,
   documents_requested: [
     { name: 'Audited financial statements FY 2022-23', description: 'P&L, B/S, schedules', is_mandatory: true, tally_exportable: true, suggested_source: 'tally' },
     { name: 'Bank statements — all current accounts', description: 'Apr 2022 to Mar 2023', is_mandatory: true, tally_exportable: false, suggested_source: 'bank' },
@@ -81,13 +95,57 @@ export default function NewCase() {
                 .toISOString()
                 .slice(0, 10)
             : null)
-        setData({ ...result, deadline, priority: result.priority || 'high' })
+        // Limited rollout: only keep an auto-generated client summary for
+        // whitelisted notice types; otherwise leave it for the CA to write.
+        const client_notice_summary = isSummaryWhitelisted(result.notice_section)
+          ? result.client_notice_summary || ''
+          : ''
+        setData({
+          ...result,
+          deadline,
+          priority: result.priority || 'high',
+          client_notice_summary,
+          show_notice_summary: result.show_notice_summary !== false,
+        })
       }
       setStep(1)
     } catch (err) {
       setExtractError(err.message || 'Extraction failed')
     } finally {
       setExtracting(false)
+    }
+  }
+
+  const [regenerating, setRegenerating] = useState(false)
+  const handleRegenerateSummary = async () => {
+    if (!data) return
+    if (!isSummaryWhitelisted(data.notice_section)) {
+      alert(
+        'Auto-generation is currently limited to notice types 143(1), 143(2), 245 and 139(9). Please write the summary manually for this notice.',
+      )
+      return
+    }
+    setRegenerating(true)
+    try {
+      const hasKey = Boolean(import.meta.env.VITE_GEMINI_API_KEY)
+      let summary
+      if (hasKey) {
+        summary = await generateNoticeSummary({
+          notice_section: data.notice_section,
+          notice_type: data.notice_type,
+          assessment_year: data.assessment_year,
+          key_issues: data.key_issues,
+          amount_involved: data.amount_involved,
+        })
+      } else {
+        await new Promise((r) => setTimeout(r, 700))
+        summary = sampleNoticeSummary(data.notice_section, data.assessment_year)
+      }
+      setData((d) => ({ ...d, client_notice_summary: summary }))
+    } catch (err) {
+      alert(err.message || 'Could not regenerate the summary.')
+    } finally {
+      setRegenerating(false)
     }
   }
 
@@ -177,7 +235,12 @@ export default function NewCase() {
 
       {step === 1 && data && (
         <div className="card p-5">
-          <ExtractionReview data={data} onChange={setData} />
+          <ExtractionReview
+            data={data}
+            onChange={setData}
+            onRegenerateSummary={handleRegenerateSummary}
+            regeneratingSummary={regenerating}
+          />
           <div className="mt-5 flex items-center justify-between">
             <button onClick={() => setStep(0)} className="btn-ghost">
               <ArrowLeft className="h-4 w-4" /> Back

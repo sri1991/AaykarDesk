@@ -1,8 +1,10 @@
 // In-memory + localStorage demo store. Used when Supabase env vars are absent
 // so the app is fully usable for demos and reviews without any backend.
-import { randomToken } from './utils.js'
+import { randomToken, defaultAcceptedFileTypes } from './utils.js'
 
-const KEY = 'aaykardesk_demo_v2'
+// Bumped to v3 when the portal-enhancement fields were added to the seed so a
+// stale v2 cache doesn't hide the new demo content.
+const KEY = 'aaykardesk_demo_v3'
 
 function seed() {
   const today = new Date()
@@ -34,6 +36,9 @@ function seed() {
       deadline_type: 'statutory',
       status: 'awaiting_documents',
       priority: 'critical',
+      client_notice_summary:
+        'The Income Tax Department has selected your tax return for AY 2022-23 for a detailed review, called a scrutiny assessment. This is a routine process — being selected does not mean anything is wrong. The department simply wants to verify some of the information in your return. Your CA is handling the response on your behalf and needs the documents listed below to prepare the reply. Once you upload everything, your CA will review and submit the response before the deadline.',
+      show_notice_summary: true,
       created_at: offset(-12),
     },
     {
@@ -151,12 +156,12 @@ function seed() {
 
   const checklists = {
     'c-1001': [
-      { id: 'i1', case_id: 'c-1001', document_name: 'ITR-V for AY 2022-23', is_mandatory: true, status: 'uploaded', tally_exportable: false, suggested_source: 'government_portal' },
-      { id: 'i2', case_id: 'c-1001', document_name: 'Audited financials FY 2021-22', description: 'P&L, B/S, schedules', is_mandatory: true, status: 'pending', tally_exportable: true, suggested_source: 'tally' },
-      { id: 'i3', case_id: 'c-1001', document_name: 'Bank statement — HDFC Current A/c', description: 'Apr 2022 to Mar 2023', is_mandatory: true, status: 'pending', tally_exportable: false, suggested_source: 'bank' },
-      { id: 'i4', case_id: 'c-1001', document_name: 'GSTR-1 / GSTR-3B reconciliations', description: 'Quarterly', is_mandatory: true, status: 'pending', tally_exportable: true, suggested_source: 'tally' },
-      { id: 'i5', case_id: 'c-1001', document_name: 'Sundry creditors confirmation letters', description: 'Top 10 by balance', is_mandatory: false, status: 'pending', tally_exportable: false, suggested_source: 'client_records' },
-      { id: 'i6', case_id: 'c-1001', document_name: 'Form 26AS', description: 'AY 2022-23', is_mandatory: true, status: 'pending', tally_exportable: false, suggested_source: 'government_portal' },
+      { id: 'i1', case_id: 'c-1001', document_name: 'ITR-V for AY 2022-23', description: 'Acknowledgement copy', client_description: 'Acknowledgement copy', is_mandatory: true, status: 'uploaded', tally_exportable: false, suggested_source: 'government_portal', accepted_file_types: ['pdf'], share_reasoning_with_client: false },
+      { id: 'i2', case_id: 'c-1001', document_name: 'Audited financials FY 2021-22', description: 'P&L, B/S, schedules', client_description: 'Please share the audited Profit & Loss, Balance Sheet and schedules for FY 2021-22.', internal_reasoning: 'Needed to reconcile turnover declared in ITR against books before the AO query on GP ratio.', share_reasoning_with_client: false, is_mandatory: true, status: 'pending', tally_exportable: true, suggested_source: 'tally', accepted_file_types: ['pdf', 'xlsx'] },
+      { id: 'i3', case_id: 'c-1001', document_name: 'Bank statement — HDFC Current A/c', description: 'Apr 2022 to Mar 2023', client_description: 'Full bank statement for your HDFC current account from Apr 2022 to Mar 2023.', internal_reasoning: 'To trace high-value credits flagged in the 26AS vs ITR reconciliation.', share_reasoning_with_client: true, is_mandatory: true, status: 'pending', tally_exportable: false, suggested_source: 'bank', accepted_file_types: ['pdf'] },
+      { id: 'i4', case_id: 'c-1001', document_name: 'GSTR-1 / GSTR-3B reconciliations', description: 'Quarterly', client_description: 'Quarterly GSTR-1 vs GSTR-3B reconciliation working.', is_mandatory: true, status: 'pending', tally_exportable: true, suggested_source: 'tally', accepted_file_types: ['pdf', 'xlsx', 'csv'], share_reasoning_with_client: false },
+      { id: 'i5', case_id: 'c-1001', document_name: 'Sundry creditors confirmation letters', description: 'Top 10 by balance', client_description: 'Confirmation letters from your top 10 sundry creditors by balance, if available.', is_mandatory: false, status: 'pending', tally_exportable: false, suggested_source: 'client_records', accepted_file_types: ['pdf', 'jpg', 'png'], share_reasoning_with_client: false },
+      { id: 'i6', case_id: 'c-1001', document_name: 'Form 26AS', description: 'AY 2022-23', client_description: 'Your Form 26AS tax credit statement for AY 2022-23 (download from the IT portal).', is_mandatory: true, status: 'pending', tally_exportable: false, suggested_source: 'government_portal', accepted_file_types: ['pdf'], share_reasoning_with_client: false },
     ],
     'c-1002': [
       { id: 'j1', case_id: 'c-1002', document_name: 'Form 26AS', is_mandatory: true, status: 'verified', tally_exportable: false, suggested_source: 'government_portal' },
@@ -285,7 +290,21 @@ function seed() {
     ],
   }
 
-  return { cases, checklists, magicLinks, triage, referenceGuidance, clientFinancials, uploads: {} }
+  const uploads = {
+    'c-1001': [
+      {
+        id: 'up-1001-1',
+        case_id: 'c-1001',
+        checklist_item_id: 'i1',
+        file_name: 'ITR-V_Sundaram_AY2022-23.pdf',
+        file_size: 248_000,
+        file_type: 'application/pdf',
+        uploaded_at: offset(-3),
+      },
+    ],
+  }
+
+  return { cases, checklists, magicLinks, triage, referenceGuidance, clientFinancials, uploads }
 }
 
 function load() {
@@ -388,6 +407,8 @@ export const demoStore = {
       status: 'awaiting_documents',
       priority: input.priority || 'medium',
       notes: input.notes || null,
+      client_notice_summary: input.client_notice_summary || null,
+      show_notice_summary: input.show_notice_summary !== false,
       created_at: now,
     }
     state.cases.unshift(newCase)
@@ -395,7 +416,14 @@ export const demoStore = {
       id: `ck-${id}-${i}`,
       case_id: id,
       document_name: d.name,
-      description: d.description || null,
+      description: d.client_description || d.description || null,
+      client_description: d.client_description || d.description || null,
+      internal_reasoning: d.internal_reasoning || null,
+      share_reasoning_with_client: d.share_reasoning_with_client === true,
+      accepted_file_types:
+        Array.isArray(d.accepted_file_types) && d.accepted_file_types.length
+          ? d.accepted_file_types
+          : defaultAcceptedFileTypes(d),
       is_mandatory: d.is_mandatory !== false,
       tally_exportable: d.tally_exportable === true,
       suggested_source: d.suggested_source || null,

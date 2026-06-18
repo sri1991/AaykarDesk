@@ -3,6 +3,7 @@
 // UI never has to know which backend is in use.
 import { supabase, isSupabaseConfigured, STORAGE_BUCKETS } from './supabase.js'
 import { demoStore } from './demoStore.js'
+import { defaultAcceptedFileTypes } from './utils.js'
 
 // Make a storage-safe object key from a user-supplied file name.
 function safeName(name) {
@@ -151,6 +152,7 @@ const CASE_COLUMNS = [
   'notice_section', 'notice_type', 'ao_name', 'ward_circle', 'jurisdiction',
   'deadline', 'deadline_type', 'priority', 'notes', 'is_faceless',
   'assessment_regime', 'tally_company_name', 'tally_import_status',
+  'client_notice_summary', 'show_notice_summary',
 ]
 
 export async function createCase(input, file) {
@@ -175,7 +177,14 @@ export async function createCase(input, file) {
     const items = docs.map((d, i) => ({
       case_id: created.id,
       document_name: d.name,
-      description: d.description || null,
+      description: d.client_description || d.description || null,
+      client_description: d.client_description || d.description || null,
+      internal_reasoning: d.internal_reasoning || null,
+      share_reasoning_with_client: d.share_reasoning_with_client === true,
+      accepted_file_types:
+        Array.isArray(d.accepted_file_types) && d.accepted_file_types.length
+          ? d.accepted_file_types
+          : defaultAcceptedFileTypes(d),
       is_mandatory: d.is_mandatory !== false,
       tally_exportable: d.tally_exportable === true,
       suggested_source: d.suggested_source || null,
